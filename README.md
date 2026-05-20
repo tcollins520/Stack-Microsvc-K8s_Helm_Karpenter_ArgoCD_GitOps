@@ -1,10 +1,3 @@
-Repo Description
-
-Cloud-native Kubernetes GitOps repository for deploying retail microservices on Amazon EKS using Kubernetes manifests, Helm, ArgoCD, StatefulSets, Secrets, ConfigMaps, and AWS-native platform integrations.
-
-README.md
-Stack Microsvc K8s Helm ArgoCD GitOps
-
 Cloud-native Kubernetes GitOps repository for deploying retail microservices on Amazon EKS using Kubernetes manifests, Helm, ArgoCD, StatefulSets, Secrets, ConfigMaps, and production-style Kubernetes architecture.
 
 This repository focuses on:
@@ -17,20 +10,20 @@ Helm packaging
 ArgoCD continuous delivery
 Secure Kubernetes configuration
 EKS-ready deployment architecture
-Technologies Used
-Kubernetes
-Amazon EKS
-Helm
-ArgoCD
-Docker
-AWS
-MySQL
-GitHub
-GitOps
-YAML
-DevOps Engineering
-Repository Structure
-Stack-Microsvc-K8s_Helm_ArgoCD_GitOps/
+
+# Technologies Used
+* Kubernetes
+* Amazon EKS
+* Helm
+* ArgoCD
+* Docker
+* AWS
+* MySQL
+* GitHub
+* GitOps
+* YAML
+* DevOps Engineering
+* Repository Structure
 ```
 │
 ├── kubedefs/
@@ -50,7 +43,7 @@ Catalog Application Deployment
 
 The catalog service is deployed using Kubernetes Deployments.
 
-Features
+# Features
 Rolling update strategy
 Readiness and liveness probes
 Resource requests and limits
@@ -63,7 +56,7 @@ ClusterIP Service
 
 The catalog application is exposed internally using a Kubernetes ClusterIP Service.
 
-Features
+# Features
 Internal service discovery
 Pod-to-pod communication
 Kubernetes DNS support
@@ -74,54 +67,54 @@ MySQL StatefulSet
 The MySQL database is deployed using a Kubernetes StatefulSet.
 
 Features
-Stateful application deployment
-Stable pod identity
-Kubernetes-managed database workload
-Headless Service integration
-MySQL 8.0 deployment
-Headless Service
+* Stateful application deployment
+* Stable pod identity
+* Kubernetes-managed database workload
+* Headless Service integration
+* MySQL 8.0 deployment
+* Headless Service
 
 A Kubernetes Headless Service is used for direct MySQL pod discovery.
 
 Features
-clusterIP: None
-Stable DNS identities
-StatefulSet networking
-Direct pod communication
+* clusterIP: None
+* Stable DNS identities
+* StatefulSet networking
+* Direct pod communication
 
 Example Kubernetes DNS endpoint:
 
-catalog-mysql-0.catalog-mysql.default.svc.cluster.local
-Kubernetes Configuration Management
-ConfigMaps
+* catalog-mysql-0.catalog-mysql.default.svc.cluster.local
+* Kubernetes Configuration Management
+* ConfigMaps
 
 ConfigMaps are used to manage:
 
-Database endpoints
-Database provider configuration
-Database names
-Connection timeout settings
-Kubernetes Secrets
+* Database endpoints
+* Database provider configuration
+* Database names
+* Connection timeout settings
+* Kubernetes Secrets
 
 Kubernetes Secrets are used to securely manage:
 
-Database usernames
-Database passwords
+* Database usernames
+* Database passwords
 Features
-Base64 encoded secret storage
-Secret injection into containers
-Separation of sensitive and non-sensitive configuration
-Kubernetes Security Features
+* Base64 encoded secret storage
+* Secret injection into containers
+* Separation of sensitive and non-sensitive configuration
+* Kubernetes Security Features
 
 The deployment includes production-style Kubernetes security configurations:
 
-Non-root containers
-Dropped Linux capabilities
-Read-only root filesystem
-Pod security contexts
-Resource isolation
-Current Architecture
-Catalog Application
+* Non-root containers
+* Dropped Linux capabilities
+* Read-only root filesystem
+* Pod security contexts
+* Resource isolation
+* Current Architecture
+* Catalog Application
         ↓
 ClusterIP Service
         ↓
@@ -140,29 +133,29 @@ Planned Improvements
 
 Future enhancements will include:
 
-Persistent Volumes (PV)
-Persistent Volume Claims (PVC)
-AWS EBS CSI Driver
-StorageClasses
-Durable persistent storage
-Planned Enhancements
+* Persistent Volumes (PV)
+* Persistent Volume Claims (PVC)
+* AWS EBS CSI Driver
+* StorageClasses
+* Durable persistent storage
+* Planned Enhancements
 
 Upcoming platform engineering features include:
 
-Helm chart templating
-ArgoCD GitOps deployments
-AWS Load Balancer Controller
-Kubernetes Ingress (HTTP/HTTPS)
-TLS/SSL with ACM
-Horizontal Pod Autoscaling (HPA)
-External Secrets Operator
-AWS Secrets Manager integration
-Namespace isolation
-Persistent storage
-Multi-environment deployments
-GitHub Actions CI/CD
-Production GitOps workflows
-GitOps Vision
+* Helm chart templating
+* ArgoCD GitOps deployments
+* AWS Load Balancer Controller
+* Kubernetes Ingress (HTTP/HTTPS)
+* TLS/SSL with ACM
+* Horizontal Pod Autoscaling (HPA)
+* External Secrets Operator
+* AWS Secrets Manager integration
+* Namespace isolation
+* Persistent storage
+* Multi-environment deployments
+* GitHub Actions CI/CD
+* Production GitOps workflows
+* GitOps Vision
 
 This repository is designed to evolve into a complete GitOps platform architecture using:
 
@@ -178,38 +171,37 @@ Learning Objectives
 
 This repository was created to strengthen skills in:
 
-Kubernetes
-Amazon EKS
-Helm
-ArgoCD
-GitOps
-Kubernetes Networking
-StatefulSets
-Kubernetes Security
-Cloud-Native Architecture
-DevOps Engineering
-Platform Engineering
-Prerequisites
+* Kubernetes
+* Amazon EKS
+* Helm
+* ArgoCD
+* GitOps
+* Kubernetes Networking
+* StatefulSets
+* Kubernetes Security
+* Cloud-Native Architecture
+* DevOps Engineering
+* Platform Engineering
+* Prerequisites
 
 Before deploying this project, ensure you have:
 
-AWS Account
-Amazon EKS Cluster
-kubectl
-AWS CLI
-Docker
-Kubernetes knowledge
-Git installed
-Example Commands
-Deploy Catalog Application
-kubectl apply -f kubedefs/catalog_k8s_manifests/
-Verify Deployments
-kubectl get all
-Verify Pods
+* AWS Account
+* Amazon EKS Cluster
+* kubectl
+* AWS CLI
+* Docker
+* Kubernetes knowledge
+* Git installed
+* Deploy Catalog Application
+* kubectl apply -f kubedefs/catalog_k8s_manifests/
+* Verify Deployments
+  kubectl get all
+* Verify Pods
 kubectl get pods
-Verify Services
+* Verify Services
 kubectl get svc
-Future GitOps Workflow
+* Future GitOps Workflow
 Developer
     ↓
 GitHub Push
