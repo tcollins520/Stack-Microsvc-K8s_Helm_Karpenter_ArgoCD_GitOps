@@ -13,7 +13,7 @@ spec:
     app.kubernetes.io/name: catalog
     app.kubernetes.io/instance: catalog
     app.kubernetes.io/component: service
-    app.kubernetes.io/owner: retail-store-app   
+    app.kubernetes.io/owner: retail-store-app    
   ports:
     - name: http
       port: 8080
