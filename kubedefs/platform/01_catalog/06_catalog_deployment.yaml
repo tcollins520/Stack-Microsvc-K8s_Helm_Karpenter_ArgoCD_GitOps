@@ -1,12 +1,15 @@
+# Source: retail-store-app-catalog-chart/templates/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: catalog
   labels:
+    helm.sh/chart: catalog-1.2.4
     app.kubernetes.io/name: catalog
     app.kubernetes.io/instance: catalog
     app.kubernetes.io/component: service
-    app.kubernetes.io/owner: retail-store-app    
+    app.kubernetes.io/owner: retail-store-app
+    app.kubernetes.io/managed-by: Helm
 spec:
   replicas: 1
   strategy:
@@ -18,23 +21,29 @@ spec:
       app.kubernetes.io/name: catalog
       app.kubernetes.io/instance: catalog
       app.kubernetes.io/component: service
-      app.kubernetes.io/owner: retail-store-app   
+      app.kubernetes.io/owner: retail-store-app
   template:
     metadata:
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
       labels:
         app.kubernetes.io/name: catalog
         app.kubernetes.io/instance: catalog
         app.kubernetes.io/component: service
-        app.kubernetes.io/owner: retail-store-app    
+        app.kubernetes.io/owner: retail-store-app
     spec:
-      serviceAccountName: catalog-mysql-sa # Service Account
+      serviceAccountName: catalog
       securityContext:
         fsGroup: 1000
       containers:
         - name: catalog
           envFrom:
             - configMapRef:
-                name: catalog                
+                name: catalog
+            - secretRef:
+                name: catalog-db
           securityContext:
             capabilities:
               drop:
@@ -52,33 +61,16 @@ spec:
             httpGet:
               path: /health
               port: 8080
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8080                 
           resources:
             limits:
-              cpu: 200m
               memory: 256Mi
             requests:
-              cpu: 100m
-              memory: 256Mi
-
+              cpu: 50m
+              memory: 128Mi
           volumeMounts:
-            - name: aws-secrets
-              mountPath: /mnt/secrets-store
-              readOnly: true
-          command: ["/bin/bash", "-c"]
-          args:
-            - |
-              export RETAIL_CATALOG_PERSISTENCE_USER=$(cat /mnt/secrets-store/MYSQL_USER);
-              export RETAIL_CATALOG_PERSISTENCE_PASSWORD=$(cat /mnt/secrets-store/MYSQL_PASSWORD);
-              echo "Starting Catalog service with secure DB credentials";
-              exec /app/main
+            - mountPath: /tmp
+              name: tmp-volume
       volumes:
-        - name: aws-secrets
-          csi:
-            driver: secrets-store.csi.k8s.io
-            readOnly: true
-            volumeAttributes:
-              secretProviderClass: "catalog-db-secrets"
+        - name: tmp-volume
+          emptyDir:
+            medium: Memory
