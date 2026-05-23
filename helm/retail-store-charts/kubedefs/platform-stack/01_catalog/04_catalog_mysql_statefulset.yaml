@@ -53,13 +53,6 @@ spec:
             - name: mysql
               containerPort: 3306
               protocol: TCP
-      volumeClaimTemplate:
-      - metadata:
-          name: data
-        spec: 
-          accessModes: ["ReadWriteOnce"]
-          storageClassName: gp2
-          resources:
-            requests:
-              storage: 5Gi
-
+      volumes:
+      - name: data
+        emptyDir: {}
