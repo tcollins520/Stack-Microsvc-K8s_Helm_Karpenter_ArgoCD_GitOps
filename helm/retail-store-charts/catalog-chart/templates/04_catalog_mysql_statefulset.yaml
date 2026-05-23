@@ -1,13 +1,12 @@
 apiVersion: apps/v1
 kind: StatefulSet
-
 metadata:
   name: catalog-mysql
 
 spec:
   serviceName: catalog-mysql
 
-  replicas: 1
+  replicas: {{ .Values.mysql.replicas }}
 
   selector:
     matchLabels:
@@ -22,7 +21,7 @@ spec:
       containers:
         - name: mysql
 
-          image: "public.ecr.aws/docker/library/mysql:8.0"
+          image: "{{ .Values.mysql.image.repository }}:{{ .Values.mysql.image.tag }}"
 
           imagePullPolicy: IfNotPresent
 
