@@ -3,7 +3,6 @@ kind: Deployment
 
 metadata:
   name: catalog
-
   labels:
     app: catalog
 
@@ -25,7 +24,6 @@ spec:
         app: catalog
 
     spec:
-
       serviceAccountName: catalog
 
       initContainers:
@@ -52,7 +50,7 @@ spec:
 
           ports:
             - name: http
-              containerPort: 8080
+              containerPort: {{ .Values.catalog.containerPort }}
 
           envFrom:
             - configMapRef:
