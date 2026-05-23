@@ -10,7 +10,7 @@ spec:
   ports:
     - port: 80
       targetPort: http
-      protocol: TCP
+      protocol: tcp
       name: http
   selector:
     app: checkout
