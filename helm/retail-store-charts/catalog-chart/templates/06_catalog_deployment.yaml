@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: catalog
+
+  labels:
+    app: catalog
+
+spec:
+  replicas: {{ .Values.catalog.replicas }}
+
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate
+
+  selector:
+    matchLabels:
+      app: catalog
+
+  template:
+    metadata:
+      labels:
+        app: catalog
+
+    spec:
+
+      serviceAccountName: catalog
+
+      initContainers:
+        - name: wait-for-mysql
+
+          image: busybox:1.36
+
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z catalog-mysql 3306;
+              do
+                echo "Waiting for MySQL..."
+                sleep 2
+              done
+
+      containers:
+        - name: catalog
+
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - name: http
+              containerPort: 8080
+
+          envFrom:
+            - configMapRef:
+                name: catalog
+
+            - secretRef:
+                name: catalog-db
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+
+            limits:
+              memory: 256Mi
+
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            readOnlyRootFilesystem: true
+
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmp-volume
+
+      volumes:
+        - name: tmp-volume
+          emptyDir:
+            medium: Memory
