@@ -4,39 +4,40 @@ kind: Deployment
 metadata:
   name: carts
   labels:
-    helm.sh/chart: carts-1.2.4
-    app.kubernetes.io/name: carts
-    app.kubernetes.io/instance: carts
-    app.kubernetes.io/component: service
-    app.kubernetes.io/owner: retail-store-app
-    app.kubernetes.io/managed-by: Helm
+    app: carts
 spec:
-  replicas: 1
+  replicas: {{ .Values.cart.replicas }}
+
   strategy:
     rollingUpdate:
       maxUnavailable: 1
     type: RollingUpdate
+
   selector:
     matchLabels:
-      app.kubernetes.io/name: carts
-      app.kubernetes.io/instance: carts
-      app.kubernetes.io/component: service
-      app.kubernetes.io/owner: retail-store-app
+      app: carts
+
   template:
     metadata:
-      annotations:
-        prometheus.io/path: /actuator/prometheus
-        prometheus.io/port: "8080"
-        prometheus.io/scrape: "true"
       labels:
-        app.kubernetes.io/name: carts
-        app.kubernetes.io/instance: carts
-        app.kubernetes.io/component: service
-        app.kubernetes.io/owner: retail-store-app
+        app: carts
     spec:
       serviceAccountName: carts
-      securityContext:
-        fsGroup: 1000
+
+      initContainers:
+        - name: wait-for-dynamodb
+
+          image: busybox:1.36
+
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z carts-dynamodb 8000;
+              do
+                echo "Waiting for DynamoDB..."
+                sleep 2
+              done
       containers:
         - name: carts
           env:
@@ -45,33 +46,45 @@ spec:
           envFrom:
             - configMapRef:
                 name: carts
-          securityContext:
-            capabilities:
-              drop:
-              - ALL
-            readOnlyRootFilesystem: true
-            runAsNonRoot: true
-            runAsUser: 1000
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
-              containerPort: 8080
+              containerPort: {{ .Values.cart.containerPort }}
               protocol: TCP
+
           readinessProbe:
             httpGet:
-              path: /actuator/health/readiness
+              path: /actuator/health
               port: 8080
-            initialDelaySeconds: 10
+            initialDelaySeconds: 30
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 20
+
           resources:
-            limits:
-              memory: 512Mi
             requests:
               cpu: 50m
               memory: 128Mi
+
+            limits:
+              cpu: 200m
+              memory: 256Mi
+
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            readOnlyRootFilesystem: true    
+              
           volumeMounts:
             - mountPath: /tmp
               name: tmp-volume
+
       volumes:
         - name: tmp-volume
           emptyDir:

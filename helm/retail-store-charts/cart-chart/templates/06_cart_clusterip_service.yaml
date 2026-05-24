@@ -4,12 +4,7 @@ kind: Service
 metadata:
   name: carts
   labels:
-    helm.sh/chart: carts-1.2.4
-    app.kubernetes.io/name: carts
-    app.kubernetes.io/instance: carts
-    app.kubernetes.io/component: service
-    app.kubernetes.io/owner: retail-store-app
-    app.kubernetes.io/managed-by: Helm
+    app: retail-store-app
 spec:
   type: ClusterIP
   ports:
@@ -18,7 +13,4 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app.kubernetes.io/name: carts
-    app.kubernetes.io/instance: carts
-    app.kubernetes.io/component: service
-    app.kubernetes.io/owner: retail-store-app
+    app: carts

@@ -5,21 +5,12 @@ kind: Service
 metadata:
   name: carts-dynamodb
   labels:
-    helm.sh/chart: carts-1.2.4
-    app.kubernetes.io/name: carts
-    app.kubernetes.io/instance: carts
-    app.kubernetes.io/component: dynamodb
-    app.kubernetes.io/owner: retail-store-app
-    app.kubernetes.io/managed-by: Helm
+    app: retail-store-app
 spec:
   type: ClusterIP
   ports:
     - port: 8000
-      targetPort: dynamodb
+      targetPort: 8000
       protocol: TCP
-      name: tcp-dynamodb
   selector:
-    app.kubernetes.io/name: carts
-    app.kubernetes.io/instance: carts
-    app.kubernetes.io/component: dynamodb
-    app.kubernetes.io/owner: retail-store-app
+    app: carts-dynamodb
