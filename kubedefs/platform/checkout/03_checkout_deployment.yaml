@@ -1,15 +1,12 @@
-# Source: retail-store-app-cart-chart/templates/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: carts
+  name: checkout
   labels:
-    helm.sh/chart: carts-1.2.4
-    app.kubernetes.io/name: carts
-    app.kubernetes.io/instance: carts
+    app.kubernetes.io/name: checkout
+    app.kubernetes.io/instance: checkout
     app.kubernetes.io/component: service
     app.kubernetes.io/owner: retail-store-app
-    app.kubernetes.io/managed-by: Helm
 spec:
   replicas: 1
   strategy:
@@ -18,33 +15,30 @@ spec:
     type: RollingUpdate
   selector:
     matchLabels:
-      app.kubernetes.io/name: carts
-      app.kubernetes.io/instance: carts
+      app.kubernetes.io/name: checkout
+      app.kubernetes.io/instance: checkout
       app.kubernetes.io/component: service
       app.kubernetes.io/owner: retail-store-app
   template:
     metadata:
       annotations:
-        prometheus.io/path: /actuator/prometheus
+        prometheus.io/path: /metrics
         prometheus.io/port: "8080"
         prometheus.io/scrape: "true"
       labels:
-        app.kubernetes.io/name: carts
-        app.kubernetes.io/instance: carts
+        app.kubernetes.io/name: checkout
+        app.kubernetes.io/instance: checkout
         app.kubernetes.io/component: service
         app.kubernetes.io/owner: retail-store-app
     spec:
-      serviceAccountName: carts
+      serviceAccountName: checkout
       securityContext:
         fsGroup: 1000
       containers:
-        - name: carts
-          env:
-            - name: JAVA_OPTS
-              value: -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/urandom
+        - name: checkout
           envFrom:
             - configMapRef:
-                name: carts
+                name: checkout
           securityContext:
             capabilities:
               drop:
@@ -52,41 +46,22 @@ spec:
             readOnlyRootFilesystem: true
             runAsNonRoot: true
             runAsUser: 1000
-          image: "tcollins520/retail-store-cart:1.3.0"
+          image: "tcollins520/retail-store-checkout:1.3.0"
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
               containerPort: 8080
               protocol: TCP
-
           readinessProbe:
             httpGet:
-              path: /actuator/health
+              path: /health
               port: 8080
-            initialDelaySeconds: 30
-            periodSeconds: 10
-
-          livenessProbe:
-            httpGet:
-              path: /actuator/health
-              port: 8080
-            initialDelaySeconds: 60
-            periodSeconds: 20
-
           resources:
-            requests:
-              cpu: 50m
-              memory: 128Mi
-
             limits:
-              cpu: 200m
               memory: 256Mi
-
-          securityContext:
-            runAsNonRoot: true
-            runAsUser: 1000
-            readOnlyRootFilesystem: true    
-            
+            requests:
+              cpu: 128m
+              memory: 256Mi
           volumeMounts:
             - mountPath: /tmp
               name: tmp-volume

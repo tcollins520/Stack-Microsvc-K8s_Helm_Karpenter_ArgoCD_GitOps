@@ -14,23 +14,23 @@ cd retailstore-charts
 ./download-and-untar-helm-charts.sh
 
 # Review all charts code
-├── retail-store-sample-cart-chart
+├── retail-store-app-cart-chart
 │   ├── Chart.yaml
 │   ├── templates
 │   └── values.yaml
-├── retail-store-sample-catalog-chart
+├── retail-store-app-catalog-chart
 │   ├── Chart.yaml
 │   ├── templates
 │   └── values.yaml
-├── retail-store-sample-checkout-chart
+├── retail-store-app-checkout-chart
 │   ├── Chart.yaml
 │   ├── templates
 │   └── values.yaml
-├── retail-store-sample-orders-chart
+├── retail-store-app-orders-chart
 │   ├── Chart.yaml
 │   ├── templates
 │   └── values.yaml
-└── retail-store-sample-ui-chart
+└── retail-store-app-ui-chart
     ├── Chart.yaml
     ├── README.md
     ├── templates
@@ -83,23 +83,23 @@ helm registry login -u AWS --password-stdin public.ecr.aws
 cd retailstore-apps
 
 # Catalog
-helm install catalog oci://public.ecr.aws/aws-containers/retail-store-sample-catalog-chart \
+helm install catalog oci://public.ecr.aws/aws-containers/retail-store-app-catalog-chart \
   --version 1.3.0 -f values-catalog.yaml
 
 # Cart
-helm install cart oci://public.ecr.aws/aws-containers/retail-store-sample-cart-chart \
+helm install cart oci://public.ecr.aws/aws-containers/retail-store-app-cart-chart \
   --version 1.3.0 -f values-cart.yaml
 
 # Checkout
-helm install checkout oci://public.ecr.aws/aws-containers/retail-store-sample-checkout-chart \
+helm install checkout oci://public.ecr.aws/aws-containers/retail-store-app-checkout-chart \
   --version 1.3.0 -f values-checkout.yaml
 
 # Orders
-helm install orders oci://public.ecr.aws/aws-containers/retail-store-sample-orders-chart \
+helm install orders oci://public.ecr.aws/aws-containers/retail-store-app-orders-chart \
   --version 1.3.0 -f values-orders.yaml
 
 # UI (Ingress enabled, HTTP — see values-ui.yaml)
-helm install ui oci://public.ecr.aws/aws-containers/retail-store-sample-ui-chart \
+helm install ui oci://public.ecr.aws/aws-containers/retail-store-app-ui-chart \
   --version 1.3.0 -f values-ui.yaml
 ```
 

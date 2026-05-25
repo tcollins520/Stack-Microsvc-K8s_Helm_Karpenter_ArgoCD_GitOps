@@ -1,15 +1,12 @@
-# Source: retail-store-app-cart-chart/templates/service.yaml
 apiVersion: v1
 kind: Service
 metadata:
   name: carts
   labels:
-    helm.sh/chart: carts-1.2.4
     app.kubernetes.io/name: carts
     app.kubernetes.io/instance: carts
     app.kubernetes.io/component: service
     app.kubernetes.io/owner: retail-store-app
-    app.kubernetes.io/managed-by: Helm
 spec:
   type: ClusterIP
   ports:

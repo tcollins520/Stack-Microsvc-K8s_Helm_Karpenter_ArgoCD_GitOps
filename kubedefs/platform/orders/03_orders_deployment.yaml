@@ -1,15 +1,12 @@
-# Source: retail-store-app-orders-chart/templates/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: orders
   labels:
-    helm.sh/chart: orders-1.2.4
     app.kubernetes.io/name: orders
     app.kubernetes.io/instance: orders
     app.kubernetes.io/component: service
     app.kubernetes.io/owner: retail-store-app
-    app.kubernetes.io/managed-by: Helm
 spec:
   replicas: 1
   strategy:
@@ -44,8 +41,6 @@ spec:
               value: -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/urandom
           envFrom:
             - secretRef:
-                name: orders-rabbitmq
-            - secretRef:
                 name: orders-db
             - configMapRef:
                 name: orders
@@ -71,12 +66,23 @@ spec:
             limits:
               memory: 512Mi
             requests:
-              cpu: 50m
-              memory: 128Mi
+              cpu: 100m
+              memory: 256Mi
           volumeMounts:
             - mountPath: /tmp
               name: tmp-volume
+            # Mount the CSI secrets volume - this will trigger secret creation              
+            - name: aws-secrets
+              mountPath: /mnt/secrets-store
+              readOnly: true         
       volumes:
         - name: tmp-volume
           emptyDir:
             medium: Memory
+        # Add the CSI secrets volume            
+        - name: aws-secrets
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "orders-db-secrets"            
