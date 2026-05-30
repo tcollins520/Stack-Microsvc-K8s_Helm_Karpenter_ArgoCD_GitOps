@@ -25,10 +25,17 @@ spec:
           operator: In
           values: ["spot"]
         # Multiple instance families for better spot availability
-        - key: karpenter.k8s.aws/instance-family
+        - key: karpenter.k8s.aws/instance-category
           operator: In
-          values: ["t3", "t3a", "t2", "c5a", "c6a"]
-        # Allow micro to large - flexibility helps find available spot capacity
+          values:
+            - c
+            - m
+            - r
+        - key: karpenter.k8s.aws/instance-generation
+          operator: Gt
+          values:
+            - "3"
+          # Allow micro to large - flexibility helps find available spot capacity
         - key: karpenter.k8s.aws/instance-size
           operator: In
           values: ["micro", "small", "medium", "large"]
