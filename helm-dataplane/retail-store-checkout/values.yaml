@@ -39,7 +39,7 @@ checkout:
       periodSeconds: 10
 
 # ---------------------------------------------------------
-# DynamoDB Database Endpoint
+# Redis Database Endpoint
 # ---------------------------------------------------------
 database:
   RETAIL_CHECKOUT_PERSISTENCE_PROVIDER: redis
