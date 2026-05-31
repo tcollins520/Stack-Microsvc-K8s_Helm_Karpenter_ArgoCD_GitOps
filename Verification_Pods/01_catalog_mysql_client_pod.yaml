@@ -18,25 +18,25 @@ spec:
         valueFrom:
           secretKeyRef:
             name: catalog-db
-            key: RETAIL_CATALOG_PERSISTENCE_USER
+            key: RETAIL_catalog_PERSISTENCE_USER
 
       - name: MYSQL_PASSWORD
         valueFrom:
           secretKeyRef:
             name: catalog-db
-            key: RETAIL_CATALOG_PERSISTENCE_PASSWORD
+            key: RETAIL_catalog_PERSISTENCE_PASSWORD
 
       # Optional: directly use the endpoint and db name from ConfigMap if available
       - name: MYSQL_HOST
         valueFrom:
           configMapKeyRef:
             name: catalog
-            key: RETAIL_CATALOG_PERSISTENCE_ENDPOINT
+            key: RETAIL_catalog_PERSISTENCE_ENDPOINT
 
       - name: MYSQL_DB
         valueFrom:
           configMapKeyRef:
             name: catalog
-            key: RETAIL_CATALOG_PERSISTENCE_DB_NAME
+            key: RETAIL_catalog_PERSISTENCE_DB_NAME
 
   restartPolicy: Never
