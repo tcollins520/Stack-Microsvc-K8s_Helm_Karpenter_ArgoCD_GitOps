@@ -1,79 +1,29 @@
-# yaml-language-server: $schema=
-# ---------------------------------------------------------
-# UI Application
-# ---------------------------------------------------------
-replicaCount: 3
-
-image:
-  repository: tcollins520/retail-store-ui
-  pullPolicy: IfNotPresent
-  tag: 2.0.0
-
-ui:
-
-  containerPort: 8080
-
-  service:
-    type: ClusterIP
-    port: 80
-    targetPort: 8080
-
-  resources:
-    requests:
-      cpu: 100m
-      memory: 356Mi
-
-    limits:
-      cpu: 500m
-      memory: 512Mi
-
-  probes:
-    readiness:
-      path: /actuator/health/readiness
-      initialDelaySeconds: 10
-      periodSeconds: 5
-
-    liveness:
-      path: /actuator/health/liveness
-      initialDelaySeconds: 30
-      periodSeconds: 10
-
-# ---------------------------------------------------------
-# ConfigMap Values
-# ---------------------------------------------------------
-config:
-  RETAIL_UI_ENDPOINTS_CATALOG: http://catalog
-  RETAIL_UI_ENDPOINTS_CARTS: http://carts
-  RETAIL_UI_ENDPOINTS_CHECKOUT: http://checkout
-  RETAIL_UI_ENDPOINTS_ORDERS: http://orders
-
-
-# ---------------------------------------------------------
-# Image Pull Secrets
-# ---------------------------------------------------------
-imagePullSecrets: []
-
-
-
-# ---------------------------------------------------------
-# Service Account
-# ---------------------------------------------------------
-serviceAccount:
-
-  create: true
-  name: ui
-
-
-# ---------------------------------------------------------
-# Karpenter Autoscaling
-# ---------------------------------------------------------
-autoscaling:
+# yaml-language-server: $schema=false
+ingress:
 
   enabled: true
 
-  minReplicas: 3
+  name: retail-store-https-helm-alb
 
-  maxReplicas: 12
+  loadBalancerName: retail-store-helm-ingress-alb
+  scheme: internet-facing
 
-  targetCPUUtilizationPercentage: 70
-  targetMemoryUtilizationPercentage: 80
+  targetType: ip
+
+  certificateArn: arn:aws:acm:us-east-1:788143860357:certificate/3de61619-99f6-423d-b835-8b4441238669
+
+  sslRedirectPort: "443"
+
+  healthcheck:
+    protocol: HTTP
+    path: /health
+    port: traffic-port
+    intervalSeconds: "15"
+    timeoutSeconds: "5"
+    successCodes: "200"
+    healthyThresholdCount: "2"
+    unhealthyThresholdCount: "2"
+
+  service:
+    name: ui
+    port: 80
