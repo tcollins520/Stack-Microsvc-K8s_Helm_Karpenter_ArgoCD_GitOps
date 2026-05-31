@@ -25,5 +25,5 @@ ingress:
     unhealthyThresholdCount: "2"
 
   service:
-    name: ui
+    name: ingress
     port: 80
