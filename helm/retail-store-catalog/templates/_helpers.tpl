@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "retail-store.name" -}}
+{{- define "retail-store-catalog.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "retail-store.fullname" -}}
+{{- define "retail-store-catalog.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,16 +26,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "retail-store.chart" -}}
+{{- define "retail-store-catalog.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "retail-store.labels" -}}
-helm.sh/chart: {{ include "retail-store.chart" . }}
-{{ include "retail-store.selectorLabels" . }}
+{{- define "retail-store-catalog.labels" -}}
+helm.sh/chart: {{ include "retail-store-catalog.chart" . }}
+{{ include "retail-store-catalog.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,17 +45,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "retail-store.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "retail-store.name" . }}
+{{- define "retail-store-catalog.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "retail-store-catalog.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "retail-store.serviceAccountName" -}}
+{{- define "retail-store-catalog.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "retail-store.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "retail-store-catalog.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
