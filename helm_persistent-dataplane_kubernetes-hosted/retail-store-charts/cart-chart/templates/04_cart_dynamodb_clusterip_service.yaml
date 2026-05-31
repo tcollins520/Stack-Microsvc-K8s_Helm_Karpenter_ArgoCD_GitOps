@@ -1,0 +1,16 @@
+
+# Source: retail-store-app-cart-chart/templates/dynamodb-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: carts-dynamodb
+  labels:
+    app: retail-store-app
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP
+  selector:
+    app: carts-dynamodb

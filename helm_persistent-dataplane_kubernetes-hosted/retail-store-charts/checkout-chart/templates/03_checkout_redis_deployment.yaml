@@ -1,0 +1,25 @@
+# Source: retail-store-app-checkout-chart/templates/redis-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: checkout-redis
+
+spec:
+  replicas: {{ .Values.redis.replicas }}
+
+  selector:
+    matchLabels:
+      app: checkout-redis
+  template:
+    metadata:
+      labels:
+        app: checkout-redis
+    spec:
+      containers:
+        - name: redis
+          image: "redis:6.0-alpine"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: redis
+              containerPort: 6379
+              protocol: TCP

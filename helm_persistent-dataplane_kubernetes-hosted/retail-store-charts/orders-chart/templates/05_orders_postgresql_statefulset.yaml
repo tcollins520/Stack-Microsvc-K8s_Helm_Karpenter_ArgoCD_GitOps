@@ -1,0 +1,60 @@
+# Source: retail-store-app-orders-chart/templates/postgresql-statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: orders-postgresql
+spec:
+  serviceName: orders-postgresql
+
+  replicas: {{ .Values.postgresql.replicas }}
+
+  selector:
+    matchLabels:
+      app: orders-postgresql
+
+  template:
+    metadata:
+      labels:
+        app: orders-postgresql
+
+    spec:
+      containers:
+        - name: postgresql
+          image: "{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_DB
+              value: orders
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: orders-db
+                  key: RETAIL_ORDERS_PERSISTENCE_USERNAME
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: orders-db
+                  key: RETAIL_ORDERS_PERSISTENCE_PASSWORD
+            - name: PGDATA
+              value: /data/pgdata
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          ports:
+            - name: postgresql
+              containerPort: 5432
+              protocol: TCP
+              
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+
+      spec:
+        accessModes:
+          - ReadWriteOnce
+
+        storageClassName: gp2
+
+        resources:
+          requests:
+            storage: 5Gi

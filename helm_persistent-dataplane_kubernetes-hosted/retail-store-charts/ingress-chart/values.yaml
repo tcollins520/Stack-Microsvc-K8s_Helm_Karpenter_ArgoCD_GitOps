@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=false
+ingress:
+
+  enabled: true
+
+  name: retail-store-https-helm-alb
+
+  loadBalancerName: retail-store-helm-ingress-alb
+  scheme: internet-facing
+
+  targetType: ip
+
+  certificateArn: arn:aws:acm:us-east-1:788143860357:certificate/3de61619-99f6-423d-b835-8b4441238669
+
+  sslRedirectPort: "443"
+
+  healthcheck:
+    protocol: HTTP
+    path: /health
+    port: traffic-port
+    intervalSeconds: "15"
+    timeoutSeconds: "5"
+    successCodes: "200"
+    healthyThresholdCount: "2"
+    unhealthyThresholdCount: "2"
+
+  service:
+    name: ui
+    port: 80
