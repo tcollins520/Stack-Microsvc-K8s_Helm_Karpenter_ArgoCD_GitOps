@@ -28,12 +28,12 @@ orders:
 
   probes:
     readiness:
-      path: /health
+      path: /actuator/health/readiness
       initialDelaySeconds: 10
       periodSeconds: 5
 
     liveness:
-      path: /health
+      path: /actuator/health/liveness
       initialDelaySeconds: 30
       periodSeconds: 10
 
@@ -70,7 +70,6 @@ secrets:
 serviceAccount:
 
   create: true
-
   name: orders
 
 
