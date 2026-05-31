@@ -1,15 +1,15 @@
 # 14_02: Deploy Retail Store Microservices with AWS Dataplane
 ## Step-01: Introduction
-In this section, we will **connect all Retail Store microservices** — catalog, Cart, Checkout, and catalog — to their equivalent **AWS Data Plane components**.
+In this section, we will **connect all Retail Store microservices** — Catalog, Cart, Checkout, and Orders — to their equivalent **AWS Data Plane components**.
 
 The goal is to replace local in-cluster databases with **fully managed AWS services** for a production-grade architecture.
 
 | **Microservice** | **AWS Data Plane Service** | **Purpose** |
 |------------------|----------------------------|--------------|
-| **catalog** | **Amazon RDS MySQL** | Stores product catalog data |
+| **Catalog** | **Amazon RDS MySQL** | Stores product catalog data |
 | **Cart** | **Amazon DynamoDB** | Manages user shopping cart data |
 | **Checkout** | **Amazon ElastiCache (Redis)** | Caches shipping rates and checkout data |
-| **catalog** | **Amazon RDS PostgreSQL + Amazon SQS** | Stores order data and handles order messaging events |
+| **Orders** | **Amazon RDS PostgreSQL + Amazon SQS** | Stores order data and handles order messaging events |
 
 Each microservice will be configured to use its respective AWS service endpoint — either via **ConfigMap**, **ExternalName Service**, or **Secrets Store CSI** for credentials.
 
@@ -33,7 +33,7 @@ Each microservice will be configured to use its respective AWS service endpoint 
     │
     ├── 01_secretproviderclass/                                    # AWS Secrets Manager integration configs
     │   ├── 01_catalog_db_secretproviderclass.yaml                # Syncs catalog MySQL credentials from AWS Secrets Manager
-    │   └── 02_catalog_db_secretproviderclass.yaml                 # Syncs catalog PostgreSQL credentials from AWS Secrets Manager
+    │   └── 02_orders_db_secretproviderclass.yaml                 # Syncs orders PostgreSQL credentials from AWS Secrets Manager
     │
     ├── 02_RetailStore_Microservices/                              # Core microservices deployments
     │   │
@@ -56,11 +56,11 @@ Each microservice will be configured to use its respective AWS service endpoint 
     │   │   ├── 03_checkout_deployment.yaml                       # Handles order processing and payment workflows
     │   │   └── 04_checkout_clusterip_service.yaml                # Internal service for checkout API
     │   │
-    │   ├── 04_catalog/                                             # Order management service (PostgreSQL + SQS backend)
-    │   │   ├── 01_catalog_service_account.yaml                    # ServiceAccount with EKS Pod Identity for AWS Secrets Manager + SQS access
-    │   │   ├── 02_catalog_configmap.yaml                          # PostgreSQL connection and SQS queue configs
-    │   │   ├── 03_catalog_deployment.yaml                         # Deployment with CSI secrets mount + init container for secret readiness
-    │   │   └── 04_catalog_clusterip_service.yaml                  # Internal service for catalog API
+    │   ├── 04_orders/                                             # Order management service (PostgreSQL + SQS backend)
+    │   │   ├── 01_orders_service_account.yaml                    # ServiceAccount with EKS Pod Identity for AWS Secrets Manager + SQS access
+    │   │   ├── 02_orders_configmap.yaml                          # PostgreSQL connection and SQS queue configs
+    │   │   ├── 03_orders_deployment.yaml                         # Deployment with CSI secrets mount + init container for secret readiness
+    │   │   └── 04_orders_clusterip_service.yaml                  # Internal service for orders API
     │   │
     │   └── 05_ui/                                                 # Frontend web application
     │       ├── 01_ui_service_account.yaml                        # ServiceAccount for UI pods
@@ -75,8 +75,8 @@ Each microservice will be configured to use its respective AWS service endpoint 
     │   ├── 01_catalog_mysql_client_pod.yaml                      # MySQL client pod to test catalog database connectivity
     │   ├── 02_cart_dynamodb_awscli_pod.yaml                      # AWS CLI pod to test DynamoDB table access
     │   ├── 03_checkout_elasticache_redis_client_pod.yaml         # Redis CLI pod to test ElastiCache connectivity
-    │   ├── 04_catalog_postgresql_client_pod.yaml                  # PostgreSQL client pod to test catalog database connectivity
-    │   ├── 05_catalog_sqs_awscli_pod.yaml                         # AWS CLI pod to test SQS queue access
+    │   ├── 04_orders_postgresql_client_pod.yaml                  # PostgreSQL client pod to test orders database connectivity
+    │   ├── 05_orders_sqs_awscli_pod.yaml                         # AWS CLI pod to test SQS queue access
     │   └── Verification-Pods.md                                   # Instructions for using verification pods
     │
     └── Verification-Pods.md                                       # Top-level verification guide
@@ -89,7 +89,7 @@ Each microservice will be configured to use its respective AWS service endpoint 
 
 We already configured the **AWS Secrets Manager CSI Driver** and **Pod Identity Agent** in earlier steps.
 
-Now, we’ll deploy the **SecretProviderClass** manifest that syncs secrets from AWS Secrets Manager into native Kubernetes secrets for **catalog** and **catalog** microservices.
+Now, we’ll deploy the **SecretProviderClass** manifest that syncs secrets from AWS Secrets Manager into native Kubernetes secrets for **Orders** and **Catalog** microservices.
 
 This allows the application pods to securely retrieve database credentials at runtime.
 
@@ -99,7 +99,7 @@ Run the below command to deploy the SecretProviderClass manifest:
 # Folder Structure
 01_secretproviderclass/
 ├── 01_catalog_db_secretproviderclass.yaml
-└── 02_catalog_db_secretproviderclass.yaml
+└── 02_orders_db_secretproviderclass.yaml
 
 # Change Directory 
 cd RetailStore_k8s_manifests_with_Data_Plane
@@ -111,7 +111,7 @@ kubectl apply -f 01_secretproviderclass/
 This manifest ensures that:
 
 * The Secrets Store CSI driver fetches credentials from AWS Secrets Manager.
-* They are automatically synced to a native Kubernetes Secret (`catalog-db`, `catalog-db`).
+* They are automatically synced to a native Kubernetes Secret (`orders-db`, `catalog-db`).
 * Pods mount these secrets directly as environment variables.
 
 ---
@@ -144,7 +144,7 @@ http://ALB-DNS-NAME/topology
 
 ---
 
-## Step-04: Deploy catalog → AWS RDS MySQL
+## Step-04: Deploy Catalog → AWS RDS MySQL
 
 ### Files
 
@@ -160,7 +160,7 @@ http://ALB-DNS-NAME/topology
 
 ### Key Configuration
 
-We’ll point the catalog service to the **RDS MySQL endpoint** using an **ExternalName Service** (`05_catalog_mysql_externalname_service.yaml`).
+We’ll point the Catalog service to the **RDS MySQL endpoint** using an **ExternalName Service** (`05_catalog_mysql_externalname_service.yaml`).
 
 This ExternalName service acts as a **DNS alias** inside the cluster, mapping to the RDS endpoint (e.g., `mydb3.cxojydmxwly6.us-east-1.rds.amazonaws.com`).
 
@@ -171,8 +171,8 @@ This ExternalName service acts as a **DNS alias** inside the cluster, mapping to
 | **ExternalName Service** | Simple DNS alias; no code or ConfigMap changes | No control over env variable injection        |
 | **ConfigMap update**     | Explicit control; endpoint visible in YAML     | Manual update required on DB endpoint changes |
 
-Here, we use **ExternalName** for **catalog** just to demonstrate the approach.
-For **catalog → PostgreSQL**, we’ll use **ConfigMap** updates instead, so students see both options in action.
+Here, we use **ExternalName** for **Catalog** just to demonstrate the approach.
+For **Orders → PostgreSQL**, we’ll use **ConfigMap** updates instead, so students see both options in action.
 
 ### Deploy Commands
 
@@ -194,7 +194,7 @@ kubectl apply -f 04_Verification_Pods/01_catalog_mysql_client_pod.yaml
 ```
 
 Then, follow verification instructions in:
-📄 **[Verification-Pods.md → Step-01: catalog → AWS RDS MySQL Database](./Verification-Pods.md)**
+📄 **[Verification-Pods.md → Step-01: Catalog → AWS RDS MySQL Database](./Verification-Pods.md)**
 
 ---
 
@@ -302,42 +302,42 @@ Then follow verification steps in:
 
 ---
 
-## Step-07: Deploy catalog → AWS RDS PostgreSQL + SQS
+## Step-07: Deploy Orders → AWS RDS PostgreSQL + SQS
 
 ### Files
 
 ```
-02_RetailStore_Microservices/04_catalog/
-  ├── 01_catalog_service_account.yaml
-  ├── 02_catalog_configmap.yaml
-  ├── 03_catalog_deployment.yaml
-  └── 04_catalog_clusterip_service.yaml
+02_RetailStore_Microservices/04_orders/
+  ├── 01_orders_service_account.yaml
+  ├── 02_orders_configmap.yaml
+  ├── 03_orders_deployment.yaml
+  └── 04_orders_clusterip_service.yaml
 ```
 
-The **catalog** microservice connects to:
+The **Orders** microservice connects to:
 
 * **Amazon RDS PostgreSQL** for order data persistence
 * **Amazon SQS** for order event messaging
 
 ### Configuration Highlights
 
-**ConfigMap** (`02_catalog_configmap.yaml`) includes:
+**ConfigMap** (`02_orders_configmap.yaml`) includes:
 
 ```yaml
-RETAIL_catalog_PERSISTENCE_PROVIDER: postgres
-RETAIL_catalog_PERSISTENCE_ENDPOINT: catalog-postgres-db.cxojydmxwly6.us-east-1.rds.amazonaws.com:5432
-RETAIL_catalog_PERSISTENCE_NAME: catalogdb
-RETAIL_catalog_MESSAGING_PROVIDER: sqs
-RETAIL_catalog_MESSAGING_SQS_TOPIC: retail-dev-catalog-queue
+RETAIL_ORDERS_PERSISTENCE_PROVIDER: postgres
+RETAIL_ORDERS_PERSISTENCE_ENDPOINT: orders-postgres-db.cxojydmxwly6.us-east-1.rds.amazonaws.com:5432
+RETAIL_ORDERS_PERSISTENCE_NAME: ordersdb
+RETAIL_ORDERS_MESSAGING_PROVIDER: sqs
+RETAIL_ORDERS_MESSAGING_SQS_TOPIC: retail-dev-orders-queue
 ```
 
-We are using **ConfigMap** here instead of **ExternalName**, to show variety and because the catalog microservice needs both RDS and SQS configuration keys in environment variables.
+We are using **ConfigMap** here instead of **ExternalName**, to show variety and because the Orders microservice needs both RDS and SQS configuration keys in environment variables.
 
 ### Deploy Commands
 
 ```bash
 # Deploy
-kubectl apply -f 02_RetailStore_Microservices/04_catalog/
+kubectl apply -f 02_RetailStore_Microservices/04_orders/
 
 # Access Application
 http://ALB-DNS-NAME
@@ -352,7 +352,7 @@ Deploy PostgreSQL client pod and connect to RDS PostgreSQL:
 
 ```bash
 # Deploy
-kubectl apply -f 04_Verification_Pods/04_catalog_postgresql_client_pod.yaml
+kubectl apply -f 04_Verification_Pods/04_orders_postgresql_client_pod.yaml
 ```
 
 #### ✅ SQS Queue Validation
@@ -361,17 +361,17 @@ Deploy AWS CLI pod for SQS testing:
 
 ```bash
 # Deploy
-kubectl apply -f 04_Verification_Pods/05_catalog_sqs_awscli_pod.yaml
+kubectl apply -f 04_Verification_Pods/05_orders_sqs_awscli_pod.yaml
 ```
 
 Then follow verification steps in:
-📄 **[Verification-Pods.md → Step-04 & Step-05: catalog → RDS PostgreSQL & SQS](./Verification-Pods.md)**
+📄 **[Verification-Pods.md → Step-04 & Step-05: Orders → RDS PostgreSQL & SQS](./Verification-Pods.md)**
 
 You can also verify messages in SQS queue:
 
 ```bash
 aws sqs receive-message \
-  --queue-url https://sqs.us-east-1.amazonaws.com/<account-id>/retail-dev-catalog-queue \
+  --queue-url https://sqs.us-east-1.amazonaws.com/<account-id>/retail-dev-orders-queue \
   --max-number-of-messages 5 \
   --output json | jq -r '.Messages[].Body' | jq
 ```
@@ -384,10 +384,10 @@ Now that all microservices are integrated with AWS data plane services, open the
 
 1. Access the Retail Store via Ingress URL.
 2. Perform full flow:
-   * Browse products (catalog → MySQL)
+   * Browse products (Catalog → MySQL)
    * Add items to cart (Cart → DynamoDB)
    * Checkout (Checkout → Redis)
-   * Place Order (catalog → PostgreSQL + SQS)
+   * Place Order (Orders → PostgreSQL + SQS)
 3. Observe logs and confirm successful transactions across all backends.
 
 If everything works, the app should now represent a **fully cloud-native architecture** using AWS managed services for persistence, caching, and messaging.
@@ -400,7 +400,7 @@ To remove all deployed Kubernetes resources:
 
 ```bash
 # Delete Kubernetes Resources
-kubectl delete -f 02_RetailStore_Microservices/04_catalog/
+kubectl delete -f 02_RetailStore_Microservices/04_orders/
 kubectl delete -f 02_RetailStore_Microservices/03_checkout/
 kubectl delete -f 02_RetailStore_Microservices/02_cart/
 kubectl delete -f 02_RetailStore_Microservices/01_catalog/
@@ -442,10 +442,10 @@ In this section, we:
 * Synced AWS Secrets with Kubernetes (SecretProviderClass)
 * Deployed UI and Ingress
 * Integrated each backend microservice with AWS:
-  * catalog → RDS MySQL
+  * Catalog → RDS MySQL
   * Cart → AWS DynamoDB
   * Checkout → ElastiCache (Redis)
-  * catalog → PostgreSQL + SQS
+  * Orders → PostgreSQL + SQS
 * Verified data and message flow end-to-end
 * Prepared a clean, production-ready cloud-native deployment on AWS
 

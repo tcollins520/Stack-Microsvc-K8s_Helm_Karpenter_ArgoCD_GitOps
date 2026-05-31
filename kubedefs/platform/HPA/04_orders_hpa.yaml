@@ -1,11 +1,11 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: catalog-hpa
+  name: orders-hpa
   namespace: default
   labels:
-    app.kubernetes.io/name: catalog
-    app.kubernetes.io/instance: catalog
+    app.kubernetes.io/name: orders
+    app.kubernetes.io/instance: orders
     app.kubernetes.io/component: autoscaling
     app.kubernetes.io/owner: retail-store-app
 
@@ -13,7 +13,7 @@ spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: catalog
+    name: orders
 
   minReplicas: 3
   maxReplicas: 12

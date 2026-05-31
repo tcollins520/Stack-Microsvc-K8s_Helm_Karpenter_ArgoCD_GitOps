@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: catalog-postgresql-client
+  name: orders-postgresql-client
   namespace: default
 spec:
   # Use the same ServiceAccount that has Pod Identity access
-  serviceAccountName: catalog
+  serviceAccountName: orders
   containers:
   - name: psql-client
     image: postgres:17.6
@@ -17,26 +17,26 @@ spec:
       - name: PGUSER
         valueFrom:
           secretKeyRef:
-            name: catalog-db
-            key: RETAIL_catalog_PERSISTENCE_USERNAME
+            name: orders-db
+            key: RETAIL_ORDERS_PERSISTENCE_USERNAME
 
       - name: PGPASSWORD
         valueFrom:
           secretKeyRef:
-            name: catalog-db
-            key: RETAIL_catalog_PERSISTENCE_PASSWORD
+            name: orders-db
+            key: RETAIL_ORDERS_PERSISTENCE_PASSWORD
 
       # Fetch DB endpoint and name from ConfigMap
       - name: PGHOST
         valueFrom:
           configMapKeyRef:
-            name: catalog
-            key: RETAIL_catalog_PERSISTENCE_ENDPOINT
+            name: orders
+            key: RETAIL_ORDERS_PERSISTENCE_ENDPOINT
 
       - name: PGDATABASE
         valueFrom:
           configMapKeyRef:
-            name: catalog
-            key: RETAIL_catalog_PERSISTENCE_NAME
+            name: orders
+            key: RETAIL_ORDERS_PERSISTENCE_NAME
 
   restartPolicy: Never

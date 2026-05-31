@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: catalog-sqs-client
+  name: orders-sqs-client
   namespace: default
 spec:
-  serviceAccountName: catalog
+  serviceAccountName: orders
   containers:
   - name: aws-cli
     image: amazon/aws-cli
@@ -19,6 +19,6 @@ spec:
       - name: SQS_QUEUE_NAME
         valueFrom:
           configMapKeyRef:
-            name: catalog
-            key: RETAIL_catalog_MESSAGING_SQS_TOPIC
+            name: orders
+            key: RETAIL_ORDERS_MESSAGING_SQS_TOPIC
   restartPolicy: Never

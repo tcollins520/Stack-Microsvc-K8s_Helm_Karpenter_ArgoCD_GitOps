@@ -39,7 +39,7 @@ EKS-ready deployment architecture
 └── README.md
 ```
 Current Kubernetes Components
-catalog Application Deployment
+Catalog Application Deployment
 
 The catalog service is deployed using Kubernetes Deployments.
 
@@ -114,7 +114,7 @@ The deployment includes production-style Kubernetes security configurations:
 * Pod security contexts
 * Resource isolation
 * Current Architecture
-* catalog Application
+* Catalog Application
         ↓
 ClusterIP Service
         ↓
@@ -193,7 +193,7 @@ Before deploying this project, ensure you have:
 * Docker
 * Kubernetes knowledge
 * Git installed
-* Deploy catalog Application
+* Deploy Catalog Application
 * kubectl apply -f kubedefs/catalog_k8s_manifests/
 * Verify Deployments
   kubectl get all

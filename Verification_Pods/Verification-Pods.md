@@ -18,7 +18,7 @@ By running these commands, you’ll validate:
 
 > 💡 These steps are crucial for **end-to-end testing** after migrating each microservice from in-cluster dependencies (like MySQL/Redis pods) to **AWS-managed services** for real-world production readiness.
 
-## Step-01: catalog -> AWS RDS MySQL Database
+## Step-01: Catalog -> AWS RDS MySQL Database
 ```bash
 # Step-01: Create Pod
 kubectl apply -f 01_catalog_mysql_client_pod.yaml
@@ -131,46 +131,46 @@ QUIT
 exit
 ```
 
-## Step-04: catalog -> AWS RDS PostgreSQL Database
+## Step-04: Orders -> AWS RDS PostgreSQL Database
 ```bash
 # Step-01: Create Pod
-kubectl apply -f 04_catalog_postgresql_client_pod.yaml 
+kubectl apply -f 04_orders_postgresql_client_pod.yaml 
 kubectl get pods
 
 # Step-02: Connect to Pod
-kubectl exec -it catalog-postgresql-client -- bash
+kubectl exec -it orders-postgresql-client -- bash
 
 # Step-03: Verify Environment Variables
 env
 env | grep PG
-echo $PGHOST   # It has port appended (catalog-postgres-db.cxojydmxwly6.us-east-1.rds.amazonaws.com:5432)
+echo $PGHOST   # It has port appended (orders-postgres-db.cxojydmxwly6.us-east-1.rds.amazonaws.com:5432)
 
 # Step-04: Connect to PostgreSQL DB
 psql -h $(echo $PGHOST | cut -d: -f1) -p 5432 -U $PGUSER -d $PGDATABASE
 # [or]
 # Connect directly using explicit endpoint
-psql -h catalog-postgres-db.cxojydmxwly6.us-east-1.rds.amazonaws.com -p 5432 -U $PGUSER -d $PGDATABASE
+psql -h orders-postgres-db.cxojydmxwly6.us-east-1.rds.amazonaws.com -p 5432 -U $PGUSER -d $PGDATABASE
 
 
-## PostgreSQL Verification Commands for catalogdb (from inside the client pod)
+## PostgreSQL Verification Commands for ordersdb (from inside the client pod)
 
 # Step-05: List all databases
 \l
 
-# Step-06: Connect to catalogdb (if not already)
-\c catalogdb
+# Step-06: Connect to ordersdb (if not already)
+\c ordersdb
 
 # Step-07: List all tables in public schema
 \dt
 
-# Step-08: Describe table structure (example: catalog table)
-\d catalog
+# Step-08: Describe table structure (example: orders table)
+\d orders
 
-# Step-09: View first 10 records from catalog table
-SELECT * FROM catalog LIMIT 10;
+# Step-09: View first 10 records from orders table
+SELECT * FROM orders LIMIT 10;
 
-# Step-10: Check total row count in catalog table
-SELECT COUNT(*) FROM catalog;
+# Step-10: Check total row count in orders table
+SELECT COUNT(*) FROM orders;
 
 # Step-11: Exit from psql session
 \q
@@ -179,16 +179,16 @@ SELECT COUNT(*) FROM catalog;
 exit
 ```
 
-## Step-05: catalog -> AWS Simple Queue Service (SQS)
+## Step-05: Orders -> AWS Simple Queue Service (SQS)
 - **AWS Console:** You can also browse via AWS Console -> SQS -> 
 Send and receive messages -> Receive messages -> Click on **Poll for messages**
 ```bash
 # Step-01: Create Pod
-kubectl apply -f 05_catalog_sqs_awscli_pod.yaml
+kubectl apply -f 05_orders_sqs_awscli_pod.yaml
 kubectl get pods
 
 # Step-02: Connect to Pod
-kubectl exec -it catalog-sqs-client -- bash
+kubectl exec -it orders-sqs-client -- bash
 
 # Step-03: Verify AWS Identity and Region
 aws sts get-caller-identity
@@ -196,7 +196,7 @@ echo $AWS_REGION
 
 # Step-04: Verify Environment Variables
 env | grep SQS
-echo $SQS_QUEUE_NAME   # From ConfigMap: retail-dev-catalog-queue
+echo $SQS_QUEUE_NAME   # From ConfigMap: retail-dev-orders-queue
 
 # Step-05: Construct Full Queue URL Dynamically
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
@@ -246,10 +246,10 @@ kubectl delete -f 04_Verification_Pods
 
 | Microservice | AWS Managed Service | Verification Pod | Key Commands |
 |---------------|---------------------|------------------|---------------|
-| **catalog** | Amazon RDS (MySQL) | `01_catalog_mysql_client_pod.yaml` | `SHOW TABLES`, `SELECT * FROM products` |
+| **Catalog** | Amazon RDS (MySQL) | `01_catalog_mysql_client_pod.yaml` | `SHOW TABLES`, `SELECT * FROM products` |
 | **Carts** | Amazon DynamoDB | `02_cart_dynamodb_awscli_pod.yaml` | `describe-table`, `scan` |
 | **Checkout** | Amazon ElastiCache (Redis) | `03_checkout_elasticache_redis_client_pod.yaml` | `PING`, `GET`, `SCAN` |
-| **catalog (DB)** | Amazon RDS (PostgreSQL) | `04_catalog_postgresql_client_pod.yaml` | `\dt`, `SELECT * FROM catalog` |
-| **catalog (Queue)** | Amazon SQS | `05_catalog_sqs_awscli_pod.yaml` | `get-queue-attributes`, `receive-message` |
+| **Orders (DB)** | Amazon RDS (PostgreSQL) | `04_orders_postgresql_client_pod.yaml` | `\dt`, `SELECT * FROM orders` |
+| **Orders (Queue)** | Amazon SQS | `05_orders_sqs_awscli_pod.yaml` | `get-queue-attributes`, `receive-message` |
 
 This completes the verification of **data flow between EKS microservices and AWS managed services** ensuring our RetailStore application is fully production-ready with **secure, observable, and scalable data endpoints**.
