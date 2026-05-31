@@ -1,0 +1,88 @@
+# Source: retail-store-app-checkout-chart/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: checkout
+  labels:
+    app: checkout
+  
+spec:
+  replicas: {{ .Values.checkout.replicas }}
+
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate
+
+  selector:
+    matchLabels:
+      app: checkout
+
+  template:
+    metadata:
+      labels:
+        app: checkout
+
+    spec:
+      serviceAccountName: checkout
+
+      initContainers:
+      - name: wait-for-redis
+        image: busybox:1.36
+        command:
+          - sh
+          - -c
+          - |
+            until nc -z checkout-redis 6379;
+            do
+              echo "Waiting for Redis..."
+              sleep 2
+            done
+      containers:
+        - name: checkout
+          envFrom:
+            - configMapRef:
+                name: checkout
+          securityContext:
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: {{ .Values.checkout.containerPort }}
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+              
+            requests:
+              cpu: 50m
+              memory: 128Mi
+              
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmp-volume
+      volumes:
+        - name: tmp-volume
+          emptyDir:
+            medium: Memory

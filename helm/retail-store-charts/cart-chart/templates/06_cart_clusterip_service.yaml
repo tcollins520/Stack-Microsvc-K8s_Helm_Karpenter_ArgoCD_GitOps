@@ -1,0 +1,16 @@
+# Source: retail-store-app-cart-chart/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: carts
+  labels:
+    app: retail-store-app
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: carts

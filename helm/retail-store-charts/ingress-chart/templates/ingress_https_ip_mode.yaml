@@ -1,0 +1,34 @@
+# Annotations Reference: https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/guide/ingress/annotations/
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "{{ .Values.ingress.name }}"
+  annotations:
+    # Load Balancer Name
+    alb.ingress.kubernetes.io/load-balancer-name: "{{ .Values.ingress.loadBalancerName }}"
+    # Ingress Core Settings
+    alb.ingress.kubernetes.io/scheme: "{{ .Values.ingress.scheme }}"
+    alb.ingress.kubernetes.io/target-type: "{{ .Values.ingress.targetType }}"
+    # Health Check Settings
+    alb.ingress.kubernetes.io/healthcheck-protocol: "{{ .Values.ingress.healthcheck.protocol }}"
+    alb.ingress.kubernetes.io/healthcheck-port: "{{ .Values.ingress.healthcheck.port }}"
+    alb.ingress.kubernetes.io/healthcheck-path: "{{ .Values.ingress.healthcheck.path }}"
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "{{ .Values.ingress.healthcheck.intervalSeconds }}"
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "{{ .Values.ingress.healthcheck.timeoutSeconds }}"
+    alb.ingress.kubernetes.io/success-codes: "{{ .Values.ingress.healthcheck.successCodes }}"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "{{ .Values.ingress.healthcheck.healthyThresholdCount }}"
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: "{{ .Values.ingress.healthcheck.unhealthyThresholdCount }}"
+    ## SSL Settings
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}, {"HTTP":80}]'
+    alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.ingress.certificateArn }}"
+    # SSL Redirect Setting
+    alb.ingress.kubernetes.io/ssl-redirect: '443'        
+spec:
+  ingressClassName: alb 
+  defaultBackend:
+    service:
+      name: "{{ .Values.ingress.service.name }}"
+      port:
+        number: 80                  
+      
+
