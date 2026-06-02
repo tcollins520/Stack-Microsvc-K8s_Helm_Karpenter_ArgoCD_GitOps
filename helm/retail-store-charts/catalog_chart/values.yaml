@@ -36,6 +36,9 @@ resources:
     cpu: 512m
     memory: 512Mi
 
+# ---------------------------------------------------------
+# MySQL RDS Database Endpoint
+# ---------------------------------------------------------
 database:
   endpoint: mydb3.cml0yuu2ka2y.us-east-1.rds.amazonaws.com
   port: 3306
