@@ -1,16 +1,10 @@
-{{- if .Values.podDisruptionBudget.enabled }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
-
 metadata:
-  name: checkout-pdb
-
+  name: aws-load-balancer-controller-pdb
+  namespace: kube-system
 spec:
-  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
-
+  minAvailable: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: checkout
-      app.kubernetes.io/instance: checkout
-      app.kubernetes.io/component: service
-{{- end }}
+      app.kubernetes.io/name: aws-load-balancer-controller

@@ -40,7 +40,7 @@ spec:
         prometheus.io/scrape: "true"
 
 {{- if .Values.opentelemetry.enabled }}
-        instrumentation.opentelemetry.io/inject-go: "{{ .Values.opentelemetry.instrumentation }}"
+        instrumentation.opentelemetry.io/inject-sdk: "{{ .Values.opentelemetry.instrumentation }}"
 {{- end }}
 
       labels:

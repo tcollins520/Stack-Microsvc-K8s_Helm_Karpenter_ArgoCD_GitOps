@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: carts
+  name: orders
 data:
-  RETAIL_CART_PERSISTENCE_PROVIDER: {{ .Values.database.RETAIL_CART_PERSISTENCE_PROVIDER | quote }}
-  RETAIL_CART_PERSISTENCE_DYNAMODB_TABLE_NAME: {{ .Values.database.RETAIL_CART_PERSISTENCE_DYNAMODB_TABLE_NAME | quote }}
-  RETAIL_CART_PERSISTENCE_DYNAMODB_CREATE_TABLE: {{ .Values.database.RETAIL_CART_PERSISTENCE_DYNAMODB_CREATE_TABLE | quote }}
-  RETAIL_CART_PERSISTENCE_DYNAMODB_ENDPOINT: {{ .Values.database.RETAIL_CART_PERSISTENCE_DYNAMODB_ENDPOINT | quote }}
-  AWS_REGION: {{ .Values.database.AWS_REGION | quote }}
-  AWS_DEFAULT_REGION: {{ .Values.database.AWS_DEFAULT_REGION | quote }}
+  RETAIL_ORDERS_PERSISTENCE_PROVIDER: postgres
+  RETAIL_ORDERS_PERSISTENCE_ENDPOINT: orders-postgres-db.cml0yuu2ka2y.us-east-1.rds.amazonaws.com:5432
+  RETAIL_ORDERS_PERSISTENCE_NAME: ordersdb
+  RETAIL_ORDERS_MESSAGING_PROVIDER: sqs
+  RETAIL_ORDERS_MESSAGING_SQS_TOPIC: retail-dev-orders-queue
+  #RETAIL_ORDERS_MESSAGING_SQS_TOPIC: https://sqs.us-east-1.amazonaws.com/180789647333/retail-dev-orders-queue
