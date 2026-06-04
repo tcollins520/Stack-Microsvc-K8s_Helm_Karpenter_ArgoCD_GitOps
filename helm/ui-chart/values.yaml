@@ -54,7 +54,7 @@ endpoints:
 
 autoscaling:
   enabled: true
-  minReplicas: 3
+  minReplicas: 4
   maxReplicas: 12
   targetCPUUtilizationPercentage: 70
   targetMemoryUtilizationPercentage: 80
