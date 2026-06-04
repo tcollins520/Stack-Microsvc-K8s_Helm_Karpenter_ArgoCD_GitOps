@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ui
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/tcollins520/Stack-Microsvc-K8s_Helm_Karpenter_ArgoCD_GitOps.git
+    targetRevision: main
+    path: helm/ui-chart
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true    # Auto-delete resources not in Git
+      selfHeal: true # Auto-sync if drift detected
+    syncOptions:
+      - CreateNamespace=true
