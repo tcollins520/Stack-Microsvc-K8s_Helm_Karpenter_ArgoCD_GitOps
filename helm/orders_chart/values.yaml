@@ -1,4 +1,4 @@
-replicaCount: 3
+replicaCount: 1
 
 image:
   repository: tcollins520/retail-store-orders
@@ -27,6 +27,9 @@ probes:
     initialDelaySeconds: 30
     periodSeconds: 10
 
+# ----------------------------------------------------------------------------
+# RESOURCE MANAGEMENT
+# ----------------------------------------------------------------------------
 resources:
   requests:
     cpu: 256m
@@ -52,20 +55,30 @@ secrets:
   secretName: retailstore-db-secret-1
   secretProviderClass: orders-db-secrets
 
+# ----------------------------------------------------------------------------
+# AUTOSCALING - HORIZONTAL POD AUTOSCALER (HPA)
+# ----------------------------------------------------------------------------
 autoscaling:
   enabled: true
-  minReplicas: 3
+  minReplicas: 1
   maxReplicas: 12
   targetCPUUtilizationPercentage: 70
   targetMemoryUtilizationPercentage: 80
-
+# ----------------------------------------------------------------------------
+# KARPENTER NODE SELECTION
+# ----------------------------------------------------------------------------
+# Schedule pods on Karpenter On-Demand nodes for stability
 nodeSelector:
-  karpenter.sh/capacity-type: on-demand
+  karpenter.sh/capacity-type: spot # Use spot instances for cost savings, on-demand for critical workloads
 
 affinity: {}
 
 tolerations: []
 
+# ----------------------------------------------------------------------------
+# TOPOLOGY SPREAD CONSTRAINTS
+# ----------------------------------------------------------------------------
+# Distribute pods across nodes AND availability zones for high availability
 topologySpreadConstraints:
   - maxSkew: 1
     topologyKey: kubernetes.io/hostname
@@ -75,7 +88,8 @@ topologySpreadConstraints:
         app.kubernetes.io/name: orders
         app.kubernetes.io/component: service
         app.kubernetes.io/instance: orders
-
+        
+  # Spread across availability zones - Strict requirement
   - maxSkew: 1
     topologyKey: topology.kubernetes.io/zone
     whenUnsatisfiable: DoNotSchedule
@@ -85,9 +99,13 @@ topologySpreadConstraints:
         app.kubernetes.io/component: service
         app.kubernetes.io/instance: orders
 
+# ----------------------------------------------------------------------------
+# POD DISRUPTION BUDGET (PDB) 
+# ----------------------------------------------------------------------------
+# Maintain minimum availability during voluntary disruptions (node drains, etc.)
 podDisruptionBudget:
-  enabled: true
-  minAvailable: 2
+  enabled: false # set to true to enable Pod Disruption Budget. If enabled, it will ensure that at least 2 pods are always available during voluntary disruptions (like node drains).
+  minAvailable: 2   # At least 2 pods must remain available
 
 opentelemetry:
   enabled: true
