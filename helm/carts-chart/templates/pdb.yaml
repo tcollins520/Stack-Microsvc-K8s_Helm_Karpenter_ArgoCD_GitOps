@@ -1,16 +1,18 @@
 {{- if .Values.podDisruptionBudget.enabled }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
-
 metadata:
-  name: carts-pdb
-
+  name: {{ include "carts.fullname" . }}
+  labels:
+    {{- include "carts.labels" . | nindent 4 }}
 spec:
-  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
-
+  {{- if .Values.podDisruptionBudget.minAvailable }}
+  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }} 
+  {{- end }}
+  {{- if .Values.podDisruptionBudget.maxUnavailable }}
+  maxUnavailable: {{ .Values.podDisruptionBudget.maxUnavailable }}
+  {{- end }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: carts
-      app.kubernetes.io/instance: carts
-      app.kubernetes.io/component: service
+      {{- include "carts.selectorLabels" . | nindent 6 }}
 {{- end }}

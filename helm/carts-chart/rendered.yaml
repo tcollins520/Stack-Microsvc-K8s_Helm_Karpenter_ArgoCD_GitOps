@@ -1,0 +1,218 @@
+---
+# Source: retail-store-carts/templates/hpa.yaml
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: carts-retail-store-carts
+  labels:
+    helm.sh/chart: retail-store-carts-0.1.0
+    app.kubernetes.io/name: retail-store-carts
+    app.kubernetes.io/instance: carts
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: carts-retail-store-carts
+  minReplicas: 1
+  maxReplicas: 12
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+---
+# Source: retail-store-carts/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: carts-retail-store-carts
+  labels:
+    helm.sh/chart: retail-store-carts-0.1.0
+    app.kubernetes.io/name: retail-store-carts
+    app.kubernetes.io/instance: carts
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+
+spec:
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: retail-store-carts
+      app.kubernetes.io/instance: carts
+
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: /actuator/prometheus
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
+        instrumentation.opentelemetry.io/inject-sdk: default-instrumentation
+      labels:
+        app.kubernetes.io/name: retail-store-carts
+        app.kubernetes.io/instance: carts
+    spec:
+      serviceAccountName: carts-retail-store-carts
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        fsGroup: 1000
+      nodeSelector:
+
+        karpenter.sh/capacity-type: spot
+      topologySpreadConstraints:
+
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/component: service
+              app.kubernetes.io/instance: carts
+              app.kubernetes.io/name: carts
+          maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/component: service
+              app.kubernetes.io/instance: carts
+              app.kubernetes.io/name: carts
+          maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: DoNotSchedule
+
+      containers:
+        -  name: carts-retail-store-carts
+          image: "tcollins520/retail-store-cart:1.3.0"
+          imagePullPolicy: IfNotPresent
+
+          envFrom:
+            - configMapRef:
+                name: carts-retail-store-carts
+
+
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+
+            capabilities:
+              drop:
+                - ALL
+
+            seccompProfile:
+              type: RuntimeDefault
+
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+
+            failureThreshold: 60
+            periodSeconds: 10
+
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+
+            initialDelaySeconds: 10
+            periodSeconds: 5
+
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+
+            initialDelaySeconds: 30
+            periodSeconds: 10
+
+          resources:
+            limits:
+              cpu: 512m
+              memory: 1Gi
+            requests:
+              cpu: 256m
+              memory: 512Mi
+
+          volumeMounts:
+
+            - mountPath: /tmp
+              name: tmp-volume
+
+      volumes:
+
+        - name: tmp-volume
+          emptyDir:
+            medium: Memory
+
+---
+# Source: retail-store-carts/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: carts-retail-store-carts
+data:
+  RETAIL_CART_PERSISTENCE_PROVIDER: "dynamodb"
+  RETAIL_CART_PERSISTENCE_DYNAMODB_TABLE_NAME: "Items"
+  RETAIL_CART_PERSISTENCE_DYNAMODB_CREATE_TABLE: "false"
+  RETAIL_CART_PERSISTENCE_DYNAMODB_ENDPOINT: "https://dynamodb.us-west-2.amazonaws.com"
+  AWS_REGION: "us-west-2"
+  AWS_DEFAULT_REGION: "us-west-2"
+---
+# Source: retail-store-carts/templates/clusterip_service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: carts-retail-store-carts
+  labels:
+    helm.sh/chart: retail-store-carts-0.1.0
+    app.kubernetes.io/name: retail-store-carts
+    app.kubernetes.io/instance: carts
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: retail-store-carts
+    app.kubernetes.io/instance: carts
+
+---
+# Source: retail-store-carts/templates/service_account.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: carts-retail-store-carts
+  labels:
+    helm.sh/chart: retail-store-carts-0.1.0
+    app.kubernetes.io/name: retail-store-carts
+    app.kubernetes.io/instance: carts
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
