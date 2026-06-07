@@ -1,16 +1,18 @@
 {{- if .Values.podDisruptionBudget.enabled }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
-
 metadata:
-  name: catalog-pdb
-
+  name: {{ include "catalog.fullname" . }}
+  labels:
+    {{- include "catalog.labels" . | nindent 4 }}
 spec:
-  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
-
+  {{- if .Values.podDisruptionBudget.minAvailable }}
+  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }} 
+  {{- end }}
+  {{- if .Values.podDisruptionBudget.maxUnavailable }}
+  maxUnavailable: {{ .Values.podDisruptionBudget.maxUnavailable }}
+  {{- end }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: catalog
-      app.kubernetes.io/instance: catalog
-      app.kubernetes.io/component: service
+      {{- include "catalog.selectorLabels" . | nindent 6 }}
 {{- end }}

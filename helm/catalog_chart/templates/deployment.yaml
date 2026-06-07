@@ -2,95 +2,74 @@ apiVersion: apps/v1
 kind: Deployment
 
 metadata:
-  name: catalog
-
+  name: {{ include "catalog.fullname" . }}
   labels:
-    app.kubernetes.io/name: catalog
-    app.kubernetes.io/instance: catalog
-    app.kubernetes.io/component: service
-    app.kubernetes.io/owner: retail-store-app
+    {{- include "catalog.labels" . | nindent 4 }}
 
 spec:
-
 {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
 {{- end }}
 
   strategy:
     type: RollingUpdate
-
     rollingUpdate:
       maxUnavailable: 25%
       maxSurge: 25%
 
   selector:
     matchLabels:
-      app.kubernetes.io/name: catalog
-      app.kubernetes.io/instance: catalog
-      app.kubernetes.io/component: service
-      app.kubernetes.io/owner: retail-store-app
+      {{- include "catalog.selectorLabels" . | nindent 6 }}
 
   template:
-
     metadata:
-
+      {{- if .Values.podAnnotations }}
       annotations:
-        prometheus.io/path: /metrics
-        prometheus.io/port: "8080"
-        prometheus.io/scrape: "true"
-
-{{- if .Values.opentelemetry.enabled }}
-        instrumentation.opentelemetry.io/inject-sdk: "{{ .Values.opentelemetry.instrumentation }}"
-{{- end }}
-
+        {{- include "catalog.podAnnotations" . | nindent 8 }}
+        {{- if and .Values.opentelemetry.enabled .Values.opentelemetry.instrumentation }}
+        instrumentation.opentelemetry.io/inject-sdk: {{ .Values.opentelemetry.instrumentation }}
+        {{- end }}
+      {{- end }}
       labels:
-        app.kubernetes.io/name: catalog
-        app.kubernetes.io/instance: catalog
-        app.kubernetes.io/component: service
-        app.kubernetes.io/owner: retail-store-app
-
+        {{- include "catalog.selectorLabels" . | nindent 8 }}
     spec:
-
-      serviceAccountName: {{ .Values.serviceAccount.name }}
-
+      serviceAccountName: {{ include "catalog.serviceAccountName" . }}
       terminationGracePeriodSeconds: 30
-
       securityContext:
-        fsGroup: 1000
-
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      
 {{- with .Values.nodeSelector }}
       nodeSelector:
-{{ toYaml . | indent 8 }}
+{{ toYaml . | nindent 8 }}
 {{- end }}
 
 {{- with .Values.topologySpreadConstraints }}
       topologySpreadConstraints:
-{{ toYaml . | indent 8 }}
+{{ toYaml . | nindent 8 }}
 {{- end }}
 
 {{- with .Values.affinity }}
       affinity:
-{{ toYaml . | indent 8 }}
+{{ toYaml . | nindent 8 }}
 {{- end }}
 
 {{- with .Values.tolerations }}
       tolerations:
-{{ toYaml . | indent 8 }}
+{{ toYaml . | nindent 8 }}
 {{- end }}
 
       containers:
-
-        - name: catalog
-
+        - name: {{ include "catalog.fullname" . }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
 
           envFrom:
             - configMapRef:
-                name: catalog
+                name: {{ include "catalog.configMapName" . }}
 
             - secretRef:
-                name: catalog-db
+                name: {{ .Values.app.persistence.secret.name }}
+
 
           securityContext:
             runAsNonRoot: true
@@ -139,7 +118,6 @@ spec:
 {{- toYaml .Values.resources | nindent 12 }}
 
           volumeMounts:
-
             - mountPath: /tmp
               name: tmp-volume
 
@@ -148,7 +126,6 @@ spec:
               readOnly: true
 
       volumes:
-
         - name: tmp-volume
           emptyDir:
             medium: Memory

@@ -2,17 +2,12 @@ apiVersion: v1
 kind: Service
 
 metadata:
-  name: {{ .Values.service.name }}
-
+  name: {{ include "catalog.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ .Values.service.name }}
-    app.kubernetes.io/instance: catalog
-    app.kubernetes.io/component: service
-    app.kubernetes.io/owner: retail-store-app
+    {{- include "catalog.labels" . | nindent 4 }}
 
 spec:
   type: {{ .Values.service.type }}
-
   ports:
     - port: {{ .Values.service.port }}
       targetPort: http
@@ -20,7 +15,4 @@ spec:
       name: http
 
   selector:
-    app.kubernetes.io/name: catalog
-    app.kubernetes.io/instance: catalog
-    app.kubernetes.io/component: service
-    app.kubernetes.io/owner: retail-store-app
+    {{- include "catalog.selectorLabels" . | nindent 4 }}

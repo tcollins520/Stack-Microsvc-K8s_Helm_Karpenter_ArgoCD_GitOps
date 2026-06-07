@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=false
 replicaCount: 1
 
 image:
@@ -14,8 +15,26 @@ service:
   targetPort: 8080
 
 serviceAccount:
+  create: true
   name: catalog
 
+# ----------------------------------------------------------------------------
+# SECURITY
+# ----------------------------------------------------------------------------
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+# ----------------------------------------------------------------------------
+# HEALTH PROBES
+# ----------------------------------------------------------------------------
 probes:
   readiness:
     path: /health
@@ -26,6 +45,7 @@ probes:
     path: /health
     initialDelaySeconds: 30
     periodSeconds: 10
+
 # ----------------------------------------------------------------------------
 # RESOURCE MANAGEMENT
 # ----------------------------------------------------------------------------
@@ -38,18 +58,39 @@ resources:
     cpu: 512m
     memory: 512Mi
 
+# ----------------------------------------------------------------------------
+# CONFIGMAP
+# ----------------------------------------------------------------------------
+configMap:
+  create: true
+  name:
+
+# ----------------------------------------------------------------------------
+# APPLICATION CONFIGURATION
 # ---------------------------------------------------------
-# MySQL RDS Database Endpoint
-# ---------------------------------------------------------
+# DATABASE CONFIGURATION
+# MySQL RDS Database Endpoint and credentials will be injected via ConfigMap and Secrets
+# --------------------------------------------------------
+app:
+  persistence:
+    provider: mysql
+    database: catalogdb
+    secret:
+      name: catalog-db
+
 database:
   endpoint: mydb3.cml0yuu2ka2y.us-east-1.rds.amazonaws.com
   port: 3306
   serviceName: catalog-mysql
 
+# ----------------------------------------------------------------------------
+# AWS SECRETS MANAGER / CSI DRIVER
+# ----------------------------------------------------------------------------
 secrets:
   awsRegion: us-east-1
   secretName: retailstore-db-secret-1
   secretProviderClass: catalog-db-secrets
+  
 # ----------------------------------------------------------------------------
 # AUTOSCALING - HORIZONTAL POD AUTOSCALER (HPA)
 # ----------------------------------------------------------------------------
@@ -67,9 +108,17 @@ autoscaling:
 nodeSelector:
   karpenter.sh/capacity-type: spot # Use spot instances for cost savings, on-demand for critical workloads
 
+tolerations: []
+
 affinity: {}
 
-tolerations: []
+# ----------------------------------------------------------------------------
+# PROMETHEUS SCRAPING
+# ----------------------------------------------------------------------------
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8080"
+  prometheus.io/path: "/actuator/prometheus"
 
 # ----------------------------------------------------------------------------
 # TOPOLOGY SPREAD CONSTRAINTS
@@ -81,8 +130,7 @@ topologySpreadConstraints:
     whenUnsatisfiable: ScheduleAnyway
     labelSelector:
       matchLabels:
-        app.kubernetes.io/name: catalog
-        app.kubernetes.io/component: service
+        app.kubernetes.io/name: retail-store-catalog
         app.kubernetes.io/instance: catalog
         
   # Spread across availability zones - Strict requirement
@@ -91,8 +139,7 @@ topologySpreadConstraints:
     whenUnsatisfiable: DoNotSchedule
     labelSelector:
       matchLabels:
-        app.kubernetes.io/name: catalog
-        app.kubernetes.io/component: service
+        app.kubernetes.io/name: retail-store-catalog
         app.kubernetes.io/instance: catalog
 
 # ----------------------------------------------------------------------------
@@ -103,6 +150,9 @@ podDisruptionBudget:
   enabled: false # set to true to enable Pod Disruption Budget. If enabled, it will ensure that at least 2 pods are always available during voluntary disruptions (like node drains).
   minAvailable: 2
 
+# ----------------------------------------------------------------------------
+# OPENTELEMETRY
+# ----------------------------------------------------------------------------
 opentelemetry:
   enabled: true
   instrumentation: default-instrumentation
