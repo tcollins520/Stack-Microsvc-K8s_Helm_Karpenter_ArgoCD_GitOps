@@ -2,13 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 
 metadata:
-  name: orders
-
+  name: {{ include "orders.fullname" . }}
   labels:
-    app.kubernetes.io/name: orders
-    app.kubernetes.io/instance: orders
-    app.kubernetes.io/component: service
-    app.kubernetes.io/owner: retail-store-app
+    {{- include "orders.labels" . | nindent 4 }}
 
 spec:
 
@@ -18,79 +14,63 @@ spec:
 
   strategy:
     type: RollingUpdate
-
     rollingUpdate:
       maxUnavailable: 25%
       maxSurge: 25%
 
   selector:
     matchLabels:
-      app.kubernetes.io/name: orders
-      app.kubernetes.io/instance: orders
-      app.kubernetes.io/component: service
-      app.kubernetes.io/owner: retail-store-app
+      {{- include "orders.selectorLabels" . | nindent 6 }}
 
   template:
-
     metadata:
-
+      {{- if .Values.podAnnotations }}
       annotations:
-        prometheus.io/path: /metrics
-        prometheus.io/port: "8080"
-        prometheus.io/scrape: "true"
-
-{{- if .Values.opentelemetry.enabled }}
-        instrumentation.opentelemetry.io/inject-sdk: "{{ .Values.opentelemetry.instrumentation }}"
-{{- end }}
-
+        {{- include "orders.podAnnotations" . | nindent 8 }}
+        {{- if and .Values.opentelemetry.enabled .Values.opentelemetry.instrumentation }}
+        instrumentation.opentelemetry.io/inject-sdk: {{ .Values.opentelemetry.instrumentation }}
+        {{- end }}
+      {{- end }}
       labels:
-        app.kubernetes.io/name: orders
-        app.kubernetes.io/instance: orders
-        app.kubernetes.io/component: service
-        app.kubernetes.io/owner: retail-store-app
+        {{- include "orders.selectorLabels" . | nindent 8 }}
 
     spec:
-
       serviceAccountName: {{ .Values.serviceAccount.name }}
-
       terminationGracePeriodSeconds: 30
-
       securityContext:
-        fsGroup: 1000
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
 
 {{- with .Values.nodeSelector }}
       nodeSelector:
-{{ toYaml . | indent 8 }}
+{{ toYaml . | nindent 8 }}
 {{- end }}
 
 {{- with .Values.topologySpreadConstraints }}
       topologySpreadConstraints:
-{{ toYaml . | indent 8 }}
+{{ toYaml . | nindent 8 }}
 {{- end }}
 
 {{- with .Values.affinity }}
       affinity:
-{{ toYaml . | indent 8 }}
+{{ toYaml . | nindent 8 }}
 {{- end }}
 
 {{- with .Values.tolerations }}
       tolerations:
-{{ toYaml . | indent 8 }}
+{{ toYaml . | nindent 8 }}
 {{- end }}
 
       containers:
-
-        - name: orders
-
+        - name: {{ include "orders.fullname" . }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
 
           envFrom:
             - configMapRef:
-                name: orders
+                name: {{ include "orders.configMapName" . }}
 
             - secretRef:
-                name: orders-db
+                name: {{ .Values.app.persistence.secret.name }}
 
           securityContext:
             runAsNonRoot: true
@@ -148,7 +128,6 @@ spec:
               readOnly: true
 
       volumes:
-
         - name: tmp-volume
           emptyDir:
             medium: Memory
