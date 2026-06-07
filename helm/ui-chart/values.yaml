@@ -21,6 +21,7 @@ service:
   targetPort: 8080
 
 serviceAccount:
+  create: true
   name: ui
 
 
