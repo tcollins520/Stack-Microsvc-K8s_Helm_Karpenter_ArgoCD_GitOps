@@ -14,8 +14,26 @@ service:
   targetPort: 8080
 
 serviceAccount:
+  create: true
   name: checkout
 
+# ----------------------------------------------------------------------------
+# SECURITY
+# ----------------------------------------------------------------------------
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+# ----------------------------------------------------------------------------
+# HEALTH PROBES
+# ----------------------------------------------------------------------------
 probes:
   readiness:
     path: /health
@@ -37,14 +55,23 @@ resources:
   limits:
     cpu: 512m
     memory: 1Gi
+# ----------------------------------------------------------------------------
+# CONFIGMAP
+# ----------------------------------------------------------------------------
+configMap:
+  create: true
+  name:
 
+# ----------------------------------------------------------------------------
+# APPLICATION CONFIGURATION
+# ElastiCache Redis database connection string and other environment variables are defined here
 # ---------------------------------------------------------
-# Redis Database Endpoint
-# ---------------------------------------------------------
-database:
-  RETAIL_CHECKOUT_PERSISTENCE_PROVIDER: redis
-  RETAIL_CHECKOUT_PERSISTENCE_REDIS_URL: "redis://retail-dev-checkout-redis.rcapw5.0001.use1.cache.amazonaws.com:6379"
-  RETAIL_CHECKOUT_ENDPOINTS_ORDERS: http://orders:80
+app:
+  persistence:
+    provider: redis
+    redisUrl: "redis://retail-dev-checkout-redis.rcapw5.0001.use1.cache.amazonaws.com:6379"
+  endpoints:
+    orders: http://orders:80 #orders service endpoint (ClusterIP service name)
 
 # ----------------------------------------------------------------------------
 # AUTOSCALING - HORIZONTAL POD AUTOSCALER (HPA)
@@ -63,9 +90,18 @@ autoscaling:
 nodeSelector:
   karpenter.sh/capacity-type: spot # Use spot instances for cost savings, on-demand for critical workloads
 
+tolerations: []
+
 affinity: {}
 
-tolerations: []
+
+# ----------------------------------------------------------------------------
+# PROMETHEUS SCRAPING
+# ----------------------------------------------------------------------------
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8080"
+  prometheus.io/path: "/actuator/prometheus"
 
 # ----------------------------------------------------------------------------
 # TOPOLOGY SPREAD CONSTRAINTS
@@ -77,8 +113,7 @@ topologySpreadConstraints:
     whenUnsatisfiable: ScheduleAnyway
     labelSelector:
       matchLabels:
-        app.kubernetes.io/name: checkout
-        app.kubernetes.io/component: service
+        app.kubernetes.io/name: retail-store-checkout
         app.kubernetes.io/instance: checkout
 
   - maxSkew: 1
@@ -86,14 +121,20 @@ topologySpreadConstraints:
     whenUnsatisfiable: DoNotSchedule
     labelSelector:
       matchLabels:
-        app.kubernetes.io/name: checkout
-        app.kubernetes.io/component: service
+        app.kubernetes.io/name: retail-store-checkout
         app.kubernetes.io/instance: checkout
-
+# ----------------------------------------------------------------------------
+# POD DISRUPTION BUDGET (PDB) 
+# ----------------------------------------------------------------------------
+# Maintain minimum availability during voluntary disruptions (node drains, etc.)
 podDisruptionBudget:
   enabled: false # set to true to enable Pod Disruption Budget. If enabled, it will ensure that at least 2 pods are always available during voluntary disruptions (like node drains).
   minAvailable: 2 # At least 2 pods must remain available
 
+
+# ----------------------------------------------------------------------------
+# OPENTELEMETRY
+# ----------------------------------------------------------------------------
 opentelemetry:
   enabled: true
   instrumentation: default-instrumentation
