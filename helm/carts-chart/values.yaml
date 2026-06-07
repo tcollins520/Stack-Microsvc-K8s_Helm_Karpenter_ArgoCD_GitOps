@@ -52,6 +52,13 @@ database:
   RETAIL_CART_PERSISTENCE_DYNAMODB_ENDPOINT: https://dynamodb.us-west-2.amazonaws.com
   AWS_REGION: us-west-2
   AWS_DEFAULT_REGION: us-west-2
+
+app:
+  endpoints:
+    catalog: http://catalog
+    carts: http://carts
+    checkout: http://checkout
+    orders: http://orders
 # ----------------------------------------------------------------------------
 # AUTOSCALING - HORIZONTAL POD AUTOSCALER (HPA)
 # ----------------------------------------------------------------------------

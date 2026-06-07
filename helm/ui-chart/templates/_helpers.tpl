@@ -1,16 +1,14 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "retail-store-catalog.name" -}}
+{{- define "ui.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
-Create a default fully qualified app name.
-We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
-If release name contains chart name it will be used as a full name.
+Create fully qualified name.
 */}}
-{{- define "retail-store-catalog.fullname" -}}
+{{- define "ui.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -24,39 +22,52 @@ If release name contains chart name it will be used as a full name.
 {{- end }}
 
 {{/*
-Create chart name and version as used by the chart label.
+Chart name and version.
 */}}
-{{- define "retail-store-catalog.chart" -}}
+{{- define "ui.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
-Common labels
+Common labels.
 */}}
-{{- define "retail-store-catalog.labels" -}}
-helm.sh/chart: {{ include "retail-store-catalog.chart" . }}
-{{ include "retail-store-catalog.selectorLabels" . }}
+{{- define "ui.labels" -}}
+helm.sh/chart: {{ include "ui.chart" . }}
+{{ include "ui.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
+
 {{/*
-Selector labels
+Selector labels.
 */}}
-{{- define "retail-store-catalog.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "retail-store-catalog.name" . }}
+{{- define "ui.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "ui.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
-Create the name of the service account to use
+* ConfigMap name.
 */}}
-{{- define "retail-store-catalog.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "retail-store-catalog.fullname" .) .Values.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.serviceAccount.name }}
+{{- define "ui.configMapName" -}}
+{{- default (include "ui.fullname" .) .Values.configMap.name }}
 {{- end }}
+
+{{/*
+Pod annotations.
+*/}}
+{{- define "ui.podAnnotations" -}}
+{{- with .Values.podAnnotations }}
+{{- toYaml . }}
+{{- end }}
+{{- end }}
+
+{{/*
+ServiceAccount name.
+*/}}
+{{- define "ui.serviceAccountName" -}}
+{{- default .Chart.Name .Values.serviceAccount.name }}
 {{- end }}

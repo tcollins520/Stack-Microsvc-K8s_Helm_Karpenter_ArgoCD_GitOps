@@ -3,9 +3,9 @@ ingress:
 
   enabled: true
 
-  name: retail-store-https-helm-alb
+  name: retail-store-https-alb
 
-  loadBalancerName: retail-store-helm-ingress-alb
+  loadBalancerName: retail-store-alb
   scheme: internet-facing
 
   targetType: ip
@@ -27,3 +27,10 @@ ingress:
   service:
     name: ui
     port: 80
+
+app:
+  endpoints:
+    catalog: http://catalog
+    carts: http://carts
+    checkout: http://checkout
+    orders: http://orders

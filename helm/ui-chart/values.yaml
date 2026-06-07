@@ -23,6 +23,24 @@ service:
 serviceAccount:
   name: ui
 
+
+# ----------------------------------------------------------------------------
+# SECURITY
+# ----------------------------------------------------------------------------
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+# ----------------------------------------------------------------------------
+# HEALTH PROBES
+# ----------------------------------------------------------------------------
 probes:
   readiness:
     path: /actuator/health/readiness
@@ -48,11 +66,21 @@ resources:
 # ---------------------------------------------------------
 # ConfigMap Values: endpoints:
 # ---------------------------------------------------------
-endpoints:
-  RETAIL_UI_ENDPOINTS_CATALOG: http://catalog
-  RETAIL_UI_ENDPOINTS_CARTS: http://carts
-  RETAIL_UI_ENDPOINTS_CHECKOUT: http://checkout
-  RETAIL_UI_ENDPOINTS_ORDERS: http://orders
+configMap:
+  create: true
+  name:
+
+# ---------------------------------------------------------
+# ConfigMap Values: endpoints:
+# ---------------------------------------------------------
+app:
+  endpoints:
+    catalog: http://catalog
+    carts: http://carts
+    checkout: http://checkout
+    orders: http://orders
+  
+  theme: default  # Options: orange, default, green, teal
 
 # ----------------------------------------------------------------------------
 # AUTOSCALING - HORIZONTAL POD AUTOSCALER (HPA)

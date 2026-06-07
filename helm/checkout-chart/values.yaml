@@ -71,7 +71,7 @@ app:
     provider: redis
     redisUrl: "redis://retail-dev-checkout-redis.rcapw5.0001.use1.cache.amazonaws.com:6379"
   endpoints:
-    orders: http://orders:80 #orders service endpoint (ClusterIP service name)
+    orders: http://orders #orders service endpoint (ClusterIP service name)
 
 # ----------------------------------------------------------------------------
 # AUTOSCALING - HORIZONTAL POD AUTOSCALER (HPA)

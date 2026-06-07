@@ -22,13 +22,13 @@ metadata:
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}, {"HTTP":80}]'
     alb.ingress.kubernetes.io/certificate-arn: "{{ .Values.ingress.certificateArn }}"
     # SSL Redirect Setting
-    alb.ingress.kubernetes.io/ssl-redirect: '443'        
+    alb.ingress.kubernetes.io/ssl-redirect: "{{ .Values.ingress.sslRedirectPort }}"
 spec:
   ingressClassName: alb 
   defaultBackend:
     service:
       name: "{{ .Values.ingress.service.name }}"
       port:
-        number: 80                  
+        number: {{ .Values.ingress.service.port }}
       
 
