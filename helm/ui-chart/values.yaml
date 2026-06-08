@@ -10,7 +10,7 @@ replicaCount: 2
 image:
   repository: 788143860357.dkr.ecr.us-east-1.amazonaws.com/retail-store/ui
   pullPolicy: IfNotPresent
-  tag: sha-246d420
+  tag: sha-cc772d2
 
 containerPort: 8080
 
