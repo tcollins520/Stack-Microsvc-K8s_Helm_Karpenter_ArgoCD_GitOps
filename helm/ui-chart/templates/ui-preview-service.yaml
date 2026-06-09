@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 
 metadata:
-  name: ui-canary
+  name: ui-preview
 
 spec:
   type: ClusterIP

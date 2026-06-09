@@ -13,26 +13,13 @@ spec:
 {{- end }}
 
   strategy:
-    canary:
+    blueGreen:
 
-      stableService: ui-stable
+      activeService: ui-active
 
-      canaryService: ui-canary
+      previewService: ui-preview
 
-      maxUnavailable: 25%
-      maxSurge: 25%
-
-      steps:
-        - setWeight: 25
-        - pause: {}
-
-        - setWeight: 50
-        - pause: {}
-
-        - setWeight: 75
-        - pause: {}
-
-        - setWeight: 100
+      autoPromotionEnabled: false
 
   selector:
     matchLabels:
