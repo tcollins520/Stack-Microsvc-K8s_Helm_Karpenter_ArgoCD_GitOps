@@ -1,5 +1,5 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 
 metadata:
   name: {{ include "ui.fullname" . }}
@@ -13,10 +13,17 @@ spec:
 {{- end }}
 
   strategy:
-    type: RollingUpdate
-    rollingUpdate:
+    canary:
+
+      stableService: ui-stable
+
+      canaryService: ui-canary
+
       maxUnavailable: 25%
       maxSurge: 25%
+
+      steps:
+        - setWeight: 100
 
   selector:
     matchLabels:
@@ -38,6 +45,7 @@ spec:
     spec:
       serviceAccountName: {{ include "ui.serviceAccountName" . }}
       terminationGracePeriodSeconds: 30
+
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
 
@@ -63,13 +71,14 @@ spec:
 
       containers:
         - name: {{ include "ui.fullname" . }}
+
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+
           imagePullPolicy: {{ .Values.image.pullPolicy }}
 
           envFrom:
             - configMapRef:
                 name: {{ include "ui.configMapName" . }}
-
 
           securityContext:
             runAsNonRoot: true
@@ -118,12 +127,10 @@ spec:
 {{- toYaml .Values.resources | nindent 12 }}
 
           volumeMounts:
-
             - mountPath: /tmp
               name: tmp-volume
 
       volumes:
-
         - name: tmp-volume
           emptyDir:
             medium: Memory
