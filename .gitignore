@@ -4,3 +4,5 @@
 .DS_Store
 .vscode/
 .idea/
+helm/argocd-rollout-sandbox.yaml
+helm/canary-rollout-demo.yaml
