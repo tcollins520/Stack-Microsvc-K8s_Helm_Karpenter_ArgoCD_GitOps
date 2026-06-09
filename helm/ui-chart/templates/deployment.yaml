@@ -24,8 +24,15 @@ spec:
 
       steps:
         - setWeight: 25
-
         - pause: {}
+
+        - setWeight: 50
+        - pause: {}
+
+        - setWeight: 75
+        - pause: {}
+
+        - setWeight: 100
 
   selector:
     matchLabels:
