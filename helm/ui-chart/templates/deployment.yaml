@@ -23,7 +23,9 @@ spec:
       maxSurge: 25%
 
       steps:
-        - setWeight: 100
+        - setWeight: 25
+
+        - pause: {}
 
   selector:
     matchLabels:
