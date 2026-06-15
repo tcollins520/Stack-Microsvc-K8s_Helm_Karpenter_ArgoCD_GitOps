@@ -1,214 +1,353 @@
-Cloud-native Kubernetes GitOps repository for deploying retail microservices on Amazon EKS using Kubernetes manifests, Helm, ArgoCD, StatefulSets, Secrets, ConfigMaps, and production-style Kubernetes architecture.
+Terraform → EKS → Helm → ArgoCD → Argo Rollouts → Karpenter → OpenTelemetry → Prometheus → Grafana
 
-This repository focuses on:
+Overview
 
-Kubernetes application deployments
-Stateful workloads
-Kubernetes networking
-GitOps workflows
-Helm packaging
-ArgoCD continuous delivery
-Secure Kubernetes configuration
-EKS-ready deployment architecture
+This repository contains the Kubernetes platform, deployment automation, and GitOps configuration used to operate a cloud-native microservices application on Amazon EKS.
 
-# Technologies Used
-* Kubernetes
-* Amazon EKS
-* Helm
-* ArgoCD
-* Docker
-* AWS
-* MySQL
-* GitHub
-* GitOps
-* YAML
-* DevOps Engineering
-* Repository Structure
+The platform was built to demonstrate modern Platform Engineering and DevOps practices using Infrastructure as Code, GitOps, progressive delivery, autoscaling, observability, and Kubernetes-native deployment workflows.
+
+The environment supports:
+. Amazon EKS
+. Helm-based application deployments
+. GitOps with ArgoCD
+. Progressive delivery with Argo Rollouts
+. Karpenter node provisioning
+. Horizontal Pod Autoscaling
+. OpenTelemetry observability
+. Prometheus metrics collection
+. Grafana dashboards
+. AWS-native integrations
+# Platform Architecture
 ```
-│
-├── kubedefs/
-│   ├── catalog_k8s_manifests/
-│   │   ├── 01_catalog_deployment.yaml
-│   │   ├── 02_catalog_clusterip_service.yaml
-│   │   ├── 03_catalog_configmap.yaml
-│   │   ├── 04_catalog_statefulset.yaml
-│   │   ├── 05_catalog_mysql_headless_service.yaml
-│   │   └── 06_catalog_mysql_secrets.yaml
-│
-├── .gitignore
-└── README.md
+Terraform
+    │
+    ▼
+Amazon EKS
+    │
+    ├── ArgoCD
+    │       │
+    │       ▼
+    │   GitOps Deployments
+    │
+    ├── Argo Rollouts
+    │       │
+    │       ├── Canary
+    │       └── Blue/Green
+    │
+    ├── Karpenter
+    │       │
+    │       ▼
+    │   Dynamic Node Provisioning
+    │
+    ├── HPA
+    │       │
+    │       ▼
+    │   Pod Autoscaling
+    │
+    └── OpenTelemetry
+            │
+            ▼
+      Prometheus
+            │
+            ▼
+         Grafana
 ```
-Current Kubernetes Components
-Catalog Application Deployment
-
-The catalog service is deployed using Kubernetes Deployments.
-
-# Features
-Rolling update strategy
-Readiness and liveness probes
-Resource requests and limits
-Kubernetes security contexts
-Non-root container execution
-Read-only root filesystem
-Secret and ConfigMap integration
-Kubernetes Services
-ClusterIP Service
-
-The catalog application is exposed internally using a Kubernetes ClusterIP Service.
-
-# Features
-Internal service discovery
-Pod-to-pod communication
-Kubernetes DNS support
-Internal load balancing
-Stateful Database Deployment
-MySQL StatefulSet
-
-The MySQL database is deployed using a Kubernetes StatefulSet.
-
-Features
-* Stateful application deployment
-* Stable pod identity
-* Kubernetes-managed database workload
-* Headless Service integration
-* MySQL 8.0 deployment
-* Headless Service
-
-A Kubernetes Headless Service is used for direct MySQL pod discovery.
-
-Features
-* clusterIP: None
-* Stable DNS identities
-* StatefulSet networking
-* Direct pod communication
-
-Example Kubernetes DNS endpoint:
-
-* catalog-mysql-0.catalog-mysql.default.svc.cluster.local
-* Kubernetes Configuration Management
-* ConfigMaps
-
-ConfigMaps are used to manage:
-
-* Database endpoints
-* Database provider configuration
-* Database names
-* Connection timeout settings
-* Kubernetes Secrets
-
-Kubernetes Secrets are used to securely manage:
-
-* Database usernames
-* Database passwords
-Features
-* Base64 encoded secret storage
-* Secret injection into containers
-* Separation of sensitive and non-sensitive configuration
-* Kubernetes Security Features
-
-The deployment includes production-style Kubernetes security configurations:
-
-* Non-root containers
-* Dropped Linux capabilities
-* Read-only root filesystem
-* Pod security contexts
-* Resource isolation
-* Current Architecture
-* Catalog Application
-        ↓
-ClusterIP Service
-        ↓
-MySQL Headless Service
-        ↓
-MySQL StatefulSet
-Current Limitations
-
-The MySQL StatefulSet currently uses:
-
-emptyDir: {}
-
-This provides temporary ephemeral storage.
-
-Planned Improvements
-
-Future enhancements will include:
-
-* Persistent Volumes (PV)
-* Persistent Volume Claims (PVC)
-* AWS EBS CSI Driver
-* StorageClasses
-* Durable persistent storage
-* Planned Enhancements
-
-Upcoming platform engineering features include:
-
-* Helm chart templating
-* ArgoCD GitOps deployments
-* AWS Load Balancer Controller
-* Kubernetes Ingress (HTTP/HTTPS)
-* TLS/SSL with ACM
-* Horizontal Pod Autoscaling (HPA)
-* External Secrets Operator
-* AWS Secrets Manager integration
-* Namespace isolation
-* Persistent storage
-* Multi-environment deployments
-* GitHub Actions CI/CD
-* Production GitOps workflows
-* GitOps Vision
-
-This repository is designed to evolve into a complete GitOps platform architecture using:
-
-GitHub
-    ↓
-ArgoCD
-    ↓
+# Platform Components
 Amazon EKS
 
-for automated Kubernetes application delivery.
+The platform runs on Amazon Elastic Kubernetes Service (EKS).
 
-Learning Objectives
+Features include:
 
-This repository was created to strengthen skills in:
+* Managed control plane
+* Multi-AZ deployment
+* Kubernetes-native workloads
+* Secure workload identity
+* Production-style architecture
 
-* Kubernetes
+# Helm
+
+Application workloads are deployed using Helm charts.
+
+The repository contains:
+
+helm/
+├── carts-chart
+├── catalog-chart
+├── checkout-chart
+├── orders-chart
+└── ui-chart
+
+Helm templates provide:
+
+* Deployments
+* Rollouts
+* Services
+* ConfigMaps
+* HPA resources
+* Service Accounts
+
+Helm enables consistent and repeatable application deployments. Helm charts are a standard Kubernetes packaging mechanism for defining application resources and configuration.
+
+# GitOps with ArgoCD
+
+ArgoCD continuously monitors the Git repository and synchronizes cluster state to the desired state defined in Git.
+```
+GitOps workflow:
+
+Git Commit
+      │
+      ▼
+Git Repository
+      │
+      ▼
+ArgoCD Detects Change
+      │
+      ▼
+Automatic Sync
+      │
+      ▼
+Kubernetes Deployment
+```
+
+Benefits:
+
+Declarative deployments
+Version-controlled infrastructure
+Automated reconciliation
+Simplified rollback
+
+GitOps platforms commonly use ArgoCD to continuously deploy Kubernetes workloads from Git-managed configurations.
+
+# Progressive Delivery
+Canary Deployments
+
+Implemented using Argo Rollouts.
+
+Traffic is gradually shifted through deployment stages:
+
+25%
+50%
+75%
+100%
+
+Configuration:
+
+* strategy:
+ *  canary:
+    * stableService: ui-stable
+    * canaryService: ui-canary
+
+Benefits:
+
+* Reduced deployment risk
+* Incremental validation
+* Safer production releases
+* 
+# Blue/Green Deployments
+
+Implemented using:
+
+* activeService: ui-active
+* previewService: ui-preview
+
+```
+Workflow:
+
+Deploy Preview Version
+        │
+        ▼
+Validate New Release
+        │
+        ▼
+Manual Promotion
+        │
+        ▼
+Switch Production Traffic
+        │
+        ▼
+Scale Down Previous Version
+```
+
+This provides near-zero-downtime application releases.
+
+# Karpenter
+
+Karpenter dynamically provisions worker nodes based on workload demand.
+
+Features:
+
+* On-demand node provisioning
+* Spot instance support
+* Cost optimization
+* Rapid scaling
+
+The platform uses NodePools and EC2NodeClasses to provision infrastructure automatically based on scheduling requirements. Karpenter watches unschedulable pods and creates appropriately sized nodes while removing unused capacity.
+
+# Horizontal Pod Autoscaling
+
+HPA automatically scales workloads based on resource utilization.
+
+Example configuration:
+
+* CPU Target:    70%
+* Memory Target: 80%
+* Minimum Pods:  2
+* Maximum Pods: 12
+
+Current workloads:
+
+* carts
+* catalog
+* checkout
+* orders
+* ui
+# Observability
+OpenTelemetry
+
+Telemetry collection includes:
+
+* Metrics
+* Traces
+* Application telemetry
+
+The platform uses AWS Distro for OpenTelemetry (ADOT).
+
+# Prometheus
+
+Prometheus collects:
+
+* Kubernetes metrics
+* Node metrics
+* Pod metrics
+* Application metrics
+
+# Grafana
+Grafana dashboards provide visibility into:
+
+* Cluster health
+* Node utilization
+* Pod resource consumption
+* Network throughput
+* Application performance
+* 
+# Security Features
+
+Implemented controls include:
+
+* Non-root containers
+* Read-only root filesystem
+* Dropped Linux capabilities
+* RuntimeDefault seccomp profile
+* Least-privilege IAM access
+* EKS Pod Identity integration
+* AWS Secrets Manager integration
+* 
+Repository Structure
+```
+.
+├── argocd/
+│   └── applications
+│
+├── helm/
+│   ├── carts-chart
+│   ├── catalog-chart
+│   ├── checkout-chart
+│   ├── orders-chart
+│   └── ui-chart
+│
+├── screenshots/
+│
+└── documentation/
+```
+Deployment Flow
+```
+Developer Commit
+        │
+        ▼
+GitHub Actions
+        │
+        ▼
+Docker Build
+        │
+        ▼
+Amazon ECR
+        │
+        ▼
+Update Helm Values
+        │
+        ▼
+GitOps Repository
+        │
+        ▼
+ArgoCD Sync
+        │
+        ▼
+Argo Rollouts
+        │
+        ▼
+Canary / Blue-Green Deployment
+        │
+        ▼
+Production Release
+```
+# Screenshots
+
+Include screenshots for:
+
+# Amazon EKS
+* NodePools
+* EC2NodeClasses
+* Worker Nodes
+# ArgoCD
+* Application Topology
+* Sync Status
+* Resource Graph
+# Argo Rollouts
+* Canary Deployments
+* Blue/Green Deployments
+* Manual Promotions
+# Autoscaling
+* HPA Status
+* Karpenter Provisioning
+# Observability
+* Grafana Dashboards
+* OpenTelemetry Metrics
+* Distributed Traces
+# Technology Stack
+# Cloud
+* AWS
 * Amazon EKS
+* Amazon ECR
+* AWS Secrets Manager
+# Kubernetes
 * Helm
 * ArgoCD
+* Argo Rollouts
+* Karpenter
+* HPA
+# Observability
+* OpenTelemetry
+* ADOT
+* Prometheus
+* Grafana
+# Automation
+* GitHub Actions
 * GitOps
-* Kubernetes Networking
-* StatefulSets
-* Kubernetes Security
-* Cloud-Native Architecture
-* DevOps Engineering
+# Infrastructure as Code
+* Terraform
+# Skills Demonstrated
 * Platform Engineering
-* Prerequisites
-
-Before deploying this project, ensure you have:
-
-* AWS Account
-* Amazon EKS Cluster
-* kubectl
-* AWS CLI
-* Docker
-* Kubernetes knowledge
-* Git installed
-* Deploy Catalog Application
-* kubectl apply -f kubedefs/catalog_k8s_manifests/
-* Verify Deployments
-  kubectl get all
-* Verify Pods
-kubectl get pods
-* Verify Services
-kubectl get svc
-* Future GitOps Workflow
-Developer
-    ↓
-GitHub Push
-    ↓
-ArgoCD Sync
-    ↓
-EKS Deployment
-Author
-
-Tina Collins
+* Kubernetes Administration
+* GitOps
+* CI/CD Automation
+* Progressive Delivery
+* Canary Deployments
+* Blue/Green Deployments
+* Amazon EKS
+* Helm Development
+* Karpenter Autoscaling
+* Observability Engineering
+* Cloud Infrastructure Automation
+* Infrastructure as Code
+*Production Operations
