@@ -81,7 +81,7 @@ app:
     checkout: http://checkout
     orders: http://orders
   
-  theme: default # Options: orange, default, green, teal
+  theme: orange # Options: orange, default, green, teal
 
 # ----------------------------------------------------------------------------
 # AUTOSCALING - HORIZONTAL POD AUTOSCALER (HPA
