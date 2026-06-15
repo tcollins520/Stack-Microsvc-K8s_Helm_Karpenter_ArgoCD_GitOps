@@ -40,13 +40,12 @@ spec:
 
   template:
     metadata:
-      {{- if .Values.podAnnotations }}
       annotations:
-        {{- include "ui.podAnnotations" . | nindent 8 }}
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+
         {{- if and .Values.opentelemetry.enabled .Values.opentelemetry.instrumentation }}
         instrumentation.opentelemetry.io/inject-sdk: {{ .Values.opentelemetry.instrumentation }}
         {{- end }}
-      {{- end }}
 
       labels:
         {{- include "ui.selectorLabels" . | nindent 8 }}
