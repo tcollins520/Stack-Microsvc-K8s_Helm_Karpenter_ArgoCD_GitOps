@@ -6,3 +6,6 @@
 .idea/
 helm/argocd-rollout-sandbox.yaml
 helm/canary-rollout-demo.yaml
+ui-canary-service.yaml
+ui-stable-service.yaml
+deployment-canary.yaml
