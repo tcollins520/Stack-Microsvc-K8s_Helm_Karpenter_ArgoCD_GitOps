@@ -1,4 +1,4 @@
-Terraform → EKS → Helm → ArgoCD → Argo Rollouts → Karpenter → OpenTelemetry → Prometheus → Grafana
+Terraform → EKS → Helm → ArgoCD → Argo Rollouts → Karpenter → OpenTelemetry → Prometheus → Grafana →Canary, Blue/Green Deployments
 
 Overview
 
